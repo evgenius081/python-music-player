@@ -1,15 +1,14 @@
 import audio_metadata
 import os
 from classes.fileMetadata import FileMetadata
-
-formats = ["mp3", "ogg", "flac",  "wav"]
+import config
 
 
 def get_all_audio_files(folder_path):
     files_metadata = []
     for root, dirs, files in os.walk(os.path.abspath(folder_path)):
         for file in files:
-            if file.split(".")[-1] in formats:
+            if file.split(".")[-1] in config.music_file_formats:
                 file_path = os.path.join(root, file)
                 files_metadata.append(get_file_metadata(file_path))
 
@@ -33,5 +32,7 @@ def get_file_metadata(file_path):
     print(metadata["pictures"])
     return file_metadata
 
-get_all_audio_files("C:\\Users\\gulev\\Music\\")
+
+def is_folder_empty(folder_path):
+    pass
 
