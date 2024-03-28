@@ -39,7 +39,7 @@ class MenuBar(QMenuBar):
         self.addMenu(aboutMenu)
 
     def _createActions(self):
-        self.addFileAction = QWidgetAction(self)
+        self.addFileAction = QAction(QIcon("pyqt/assets/add_file.svg"), "&Dodaj pliki", self)
         
         self.exitAction = QAction(QIcon("pyqt/assets/exit.svg"), "&Wyjdź", self)
         self.stopAction = QAction(QIcon("pyqt/assets/pause.svg"), "&Pauza", self)

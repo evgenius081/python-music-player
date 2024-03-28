@@ -1,0 +1,16 @@
+QLabel#empty_music_folder_label{
+    color: #EEEEEE;
+    font-size: 32px;
+    margin-bottom: 20px;
+}
+
+QPushButton#add_music_button{
+    background-color: #76ABAE;
+    color: #EEEEEE;
+    font-size: 20px;
+    border-radius: 5px;
+}
+
+QWidget#empty_music_folder_main{
+    border: 1px solid red
+}

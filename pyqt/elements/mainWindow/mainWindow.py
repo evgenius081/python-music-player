@@ -1,7 +1,8 @@
 from PyQt6.QtWidgets import QMainWindow
-import config
+
 from pyqt.elements.menuBar.menuBar import MenuBar
-import os
+from common.utils.files import *
+from pyqt.elements.emptyMusicFolderMain.emptyMusicFolderMain import EmptyMusicFolderMain
 
 
 class MainWindow(QMainWindow):
@@ -10,12 +11,12 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Yahul's player")
         self.setFixedWidth(config.WINDOW_WIDTH)
         self.setFixedHeight(config.WINDOW_HEIGHT)
-        print(os.getcwd())
         with open("./pyqt/elements/mainWindow/mainWindow.css", "r") as file:
             self.styles = file.read()
         self.setStyleSheet(self.styles)
-        self._createMenuBar()
+        self.mainWidget = None
         self._createMainPart()
+        self._createMenuBar()
 
     def _createMenuBar(self):
         menuBar = MenuBar(self)
@@ -28,10 +29,11 @@ class MainWindow(QMainWindow):
             self._createMainWithControls()
 
     def _isMusicFolderEmpty(self):
-        pass
+        return is_folder_empty(config.MUSIC_ABSOLUTE_PATH)
 
     def _createEmptyMain(self):
-        pass
+        self.mainWidget = EmptyMusicFolderMain(self)
+        self.adjustSize()
 
     def _createMainWithControls(self):
         pass

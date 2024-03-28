@@ -1,12 +1,13 @@
 import audio_metadata
 import os
-from classes.fileMetadata import FileMetadata
+from common.classes.fileMetadata import FileMetadata
 import config
+import shutil
 
 
 def get_all_audio_files(folder_path):
     files_metadata = []
-    for root, dirs, files in os.walk(os.path.abspath(folder_path)):
+    for root, _, files in os.walk(os.path.abspath(folder_path)):
         for file in files:
             if file.split(".")[-1] in config.music_file_formats:
                 file_path = os.path.join(root, file)
@@ -34,5 +35,10 @@ def get_file_metadata(file_path):
 
 
 def is_folder_empty(folder_path):
-    pass
+    folder = os.listdir(folder_path)
+    return len(folder) == 0
+
+
+def clone_file(file_path, dest_folder):
+    shutil.copy2(file_path, dest_folder)
 
