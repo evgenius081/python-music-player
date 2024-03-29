@@ -1,6 +1,5 @@
 from PyQt6.QtGui import QAction, QIcon
-from PyQt6.QtWidgets import QMenuBar, QMenu, QWidgetAction
-from pyqt6_plugins.examplebutton import QtWidgets
+from PyQt6.QtWidgets import QMenuBar, QMenu
 
 
 class MenuBar(QMenuBar):

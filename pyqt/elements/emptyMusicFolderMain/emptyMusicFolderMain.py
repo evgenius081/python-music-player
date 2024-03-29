@@ -1,7 +1,10 @@
 from PyQt6 import QtCore
+from PyQt6.QtCore import pyqtSlot
 from PyQt6.QtGui import QCursor
-from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout
+from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QFileDialog
 
+from common.utils.files import clone_file
+from pyqt.actions.files import addMusicFilesAction
 import config
 
 
@@ -31,11 +34,19 @@ class EmptyMusicFolderMain(QWidget):
         return empty_folder_label
 
     def _getAddButton(self):
-        addMusicButton = QPushButton("Dodaj piosenki")
-        addMusicButton.setObjectName("add_music_button")
-        addMusicButton.setStyleSheet(self.styles)
-        addMusicButton.setFixedWidth(257)
-        addMusicButton.setFixedHeight(33)
-        addMusicButton.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-        return addMusicButton
+        add_music_button = QPushButton("Dodaj piosenki")
+        add_music_button.setObjectName("add_music_button")
+        add_music_button.setStyleSheet(self.styles)
+        add_music_button.setFixedWidth(257)
+        add_music_button.setFixedHeight(33)
+        add_music_button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        add_music_button.clicked.connect(self._addMusicFilesAction)
+        return add_music_button
 
+    @pyqtSlot()
+    def _addMusicFilesAction(self):
+        file_filter = " ".join(map(lambda s: f"*.{s}", config.music_file_formats))
+        file_dialog = QFileDialog.getOpenFileNames(self, "Select audio files", "", file_filter)
+        filenames = file_dialog[0]
+        for filename in filenames:
+            clone_file(filename, config.MUSIC_ABSOLUTE_PATH)
