@@ -10,7 +10,3 @@ QPushButton#add_music_button{
     font-size: 20px;
     border-radius: 5px;
 }
-
-QWidget#empty_music_folder_main{
-    border: 1px solid red
-}

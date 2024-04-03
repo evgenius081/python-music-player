@@ -1,3 +1,5 @@
+from io import BytesIO
+
 import audio_metadata
 import os
 from common.classes.fileMetadata import FileMetadata
@@ -13,9 +15,6 @@ def get_all_audio_files(folder_path):
                 file_path = os.path.join(root, file)
                 files_metadata.append(get_file_metadata(file_path))
 
-    for file in files_metadata:
-        print(file)
-
     return files_metadata
 
 
@@ -28,9 +27,8 @@ def get_file_metadata(file_path):
         song_author=metadata["tags"]["artist"][0],
         song_album=metadata["tags"]["album"][0],
         song_duration_in_sec=metadata["streaminfo"]["duration"],
-        song_cover_image_stream=metadata["pictures"][0]
+        song_cover_image_stream=BytesIO(metadata["pictures"][0].data).getvalue()
     )
-    print(metadata["pictures"])
     return file_metadata
 
 

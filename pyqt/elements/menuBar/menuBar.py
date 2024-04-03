@@ -1,55 +1,73 @@
+from PyQt6.QtCore import QCoreApplication, pyqtSignal
 from PyQt6.QtGui import QAction, QIcon
-from PyQt6.QtWidgets import QMenuBar, QMenu
+from PyQt6.QtWidgets import QMenuBar, QMenu, QApplication, QFileDialog
+
+import config
+from common.utils.files import clone_file
 
 
 class MenuBar(QMenuBar):
-    def __init__(self, parent=None):
+    refresh_signal = pyqtSignal()
+
+    def __init__(self, parent, refresh_slot):
         super().__init__(parent)
         with open("./pyqt/elements/menuBar/menuBar.css", "r") as file:
             self.styles = file.read()
         self.setStyleSheet(self.styles)
-        self._createActions()
-        self._createMenu()
+        self.refresh_signal.connect(refresh_slot)
+        self._create_actions()
+        self._create_menu()
 
-    def _createMenu(self):
-        fileMenu = QMenu("&Plik", self)
-        fileMenu.setStyleSheet(self.styles)
-        fileMenu.addAction(self.addFileAction)
-        fileMenu.addSeparator()
-        fileMenu.addAction(self.exitAction)
+    def _create_menu(self):
+        file_menu = QMenu("&Plik", self)
+        file_menu.setStyleSheet(self.styles)
+        file_menu.addAction(self.add_file_action)
+        file_menu.addSeparator()
+        file_menu.addAction(self.exit_action)
 
-        playbackMenu = QMenu("&Odtwarzanie", self)
-        playbackMenu.setStyleSheet(self.styles)
-        playbackMenu.addAction(self.playAction)
-        fileMenu.addSeparator()
-        playbackMenu.addAction(self.prevAction)
-        playbackMenu.addAction(self.nextAction)
-        fileMenu.addSeparator()
-        playbackMenu.addAction(self.shuffleAction)
-        playbackMenu.addAction(self.repeatListAction)
-        fileMenu.addSeparator()
-        playbackMenu.addAction(self.quietAction)
-        playbackMenu.addAction(self.loudAction)
+        playback_menu = QMenu("&Odtwarzanie", self)
+        playback_menu.setStyleSheet(self.styles)
+        playback_menu.addAction(self.play_action)
+        file_menu.addSeparator()
+        playback_menu.addAction(self.prev_action)
+        playback_menu.addAction(self.next_action)
+        file_menu.addSeparator()
+        playback_menu.addAction(self.shuffle_action)
+        playback_menu.addAction(self.repeatList_action)
+        file_menu.addSeparator()
+        playback_menu.addAction(self.quiet_action)
+        playback_menu.addAction(self.loud_action)
 
-        aboutMenu = QMenu("&Opis", self)
-        aboutMenu.setStyleSheet(self.styles)
-        self.addMenu(fileMenu)
-        self.addMenu(playbackMenu)
-        self.addMenu(aboutMenu)
+        about_menu = QMenu("&Opis", self)
+        about_menu.setStyleSheet(self.styles)
+        self.addMenu(file_menu)
+        self.addMenu(playback_menu)
+        self.addMenu(about_menu)
 
-    def _createActions(self):
-        self.addFileAction = QAction(QIcon("pyqt/assets/add_file.svg"), "&Dodaj pliki", self)
-        
-        self.exitAction = QAction(QIcon("pyqt/assets/exit.svg"), "&Wyjdź", self)
-        self.stopAction = QAction(QIcon("pyqt/assets/pause.svg"), "&Pauza", self)
-        self.playAction = QAction("&Odtwarzaj", self)
-        self.prevAction = QAction("&Poprzednia", self)
-        self.nextAction = QAction("&Następna", self)
-        self.shuffleAction = QAction("&Przetasowanie", self)
-        self.stopShuffleAction = QAction("&?", self)
-        self.repeatListAction = QAction("&Powtarzaj listę", self)
-        self.repeatSingleAction = QAction("&Powtarzaj jedną", self)
-        self.stopRepeatAction = QAction("&Nie powtarzaj", self)
-        self.quietAction = QAction("&Ciszej", self)
-        self.loudAction = QAction("&Głośniej", self)
+    def _create_actions(self):
+        self.add_file_action = QAction(QIcon("pyqt/assets/add_file.svg"), "&Dodaj pliki")
+        self.add_file_action.triggered.connect(self._add_music_files_action)
+        self.exit_action = QAction(QIcon("pyqt/assets/exit.svg"), "&Wyjdź")
+        self.exit_action.triggered.connect(QApplication.instance().quit)
+        self.stop_action = QAction(QIcon("pyqt/assets/pause.svg"), "&Pauza")
+        self.play_action = QAction("&Odtwarzaj")
+        self.prev_action = QAction("&Poprzednia")
+        self.next_action = QAction("&Następna")
+        self.shuffle_action = QAction("&Przetasowanie")
+        self.stopShuffle_action = QAction("&?")
+        self.repeatList_action = QAction("&Powtarzaj listę")
+        self.repeatSingle_action = QAction("&Powtarzaj jedną")
+        self.stopRepeat_action = QAction("&Nie powtarzaj")
+        self.quiet_action = QAction("&Ciszej")
+        self.loud_action = QAction("&Głośniej")
+
+    def _add_music_files_action(self):
+        file_filter = " ".join(map(lambda s: f"*.{s}", config.music_file_formats))
+        file_dialog = QFileDialog.getOpenFileNames(self, "Select audio files", "", file_filter)
+        filenames = file_dialog[0]
+        for filename in filenames:
+            clone_file(filename, config.MUSIC_ABSOLUTE_PATH)\
+
+        if len(filenames) > 0:
+            self.refresh_signal.emit()
 

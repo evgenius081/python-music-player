@@ -1,0 +1,35 @@
+QFrame#song_frame {
+    background-color: #31363F;
+    border-radius: 5px;
+}
+
+QLabel#song_title_label {
+    color: #EEEEEE;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+QLabel#song_number_label, QLabel#song_duration_label {
+    color: #EEEEEE;
+    font-size: 12px;
+}
+
+QLabel#song_author_label, QLabel#song_album_label {
+    color: #BEBEBE;
+    font-size: 12px;
+}
+
+QLabel#cover_label {
+    border-radius: 5px;
+}
+
+QPushButton#song_options_button {
+    border: 1 px solid red;
+    background: none;
+    padding: 0;
+}
+
+QPushButton#song_play_button {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 5px;
+}
