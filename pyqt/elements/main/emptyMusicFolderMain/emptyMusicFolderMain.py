@@ -6,6 +6,10 @@ from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QFileDial
 from common.utils.files import clone_file
 import config
 
+EMPTY_FOLDER_LABEL_HEIGHT = 80
+ADD_MUSIC_BUTTON_WIDTH = 257
+ADD_MUSIC_BUTTON_HEIGHT = 33
+
 
 class EmptyMusicFolderMain(QWidget):
     refresh_signal = pyqtSignal()
@@ -16,7 +20,7 @@ class EmptyMusicFolderMain(QWidget):
         with open("./pyqt/elements/main/emptyMusicFolderMain/emptyMusicFolderMain.css", "r") as file:
             self.styles = file.read()
         self.setFixedWidth(config.WINDOW_WIDTH)
-        self.setFixedHeight(config.WINDOW_HEIGHT-60)
+        self.setFixedHeight(config.WINDOW_HEIGHT-config.MENU_BAR_HEIGHT)
         self.setObjectName("empty_music_folder_main")
         self.refresh_signal.connect(refresh_slot)
         self.layout = None
@@ -36,21 +40,21 @@ class EmptyMusicFolderMain(QWidget):
         self.empty_folder_label.setObjectName("empty_music_folder_label")
         self.empty_folder_label.setStyleSheet(self.styles)
         self.empty_folder_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.empty_folder_label.setFixedHeight(80)
+        self.empty_folder_label.setFixedHeight(EMPTY_FOLDER_LABEL_HEIGHT)
         self.layout.addWidget(self.empty_folder_label)
 
     def _create_add_button(self):
         self.add_music_button = QPushButton("Dodaj piosenki")
         self.add_music_button.setObjectName("add_music_button")
         self.add_music_button.setStyleSheet(self.styles)
-        self.add_music_button.setFixedWidth(257)
-        self.add_music_button.setFixedHeight(33)
+        self.add_music_button.setFixedWidth(ADD_MUSIC_BUTTON_WIDTH)
+        self.add_music_button.setFixedHeight(ADD_MUSIC_BUTTON_HEIGHT)
         self.add_music_button.setCursor(QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.add_music_button.clicked.connect(self._add_music_files_action)
         self.layout.addWidget(self.add_music_button, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
 
     def _add_music_files_action(self):
-        file_filter = " ".join(map(lambda s: f"*.{s}", config.music_file_formats))
+        file_filter = " ".join(map(lambda s: f"*.{s}", config.MUSIC_FILE_FORMATS))
         file_dialog = QFileDialog.getOpenFileNames(self, "Select audio files", "", file_filter)
         filenames = file_dialog[0]
         for filename in filenames:

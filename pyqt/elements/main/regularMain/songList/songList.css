@@ -3,21 +3,21 @@ QScrollArea#song_scroll, QWidget#song_list_widget {
     border: none;
 }
 
-QLabel#number_label, QLabel#title_label, QLabel#album_label {
+QLabel#header_number_label, QLabel#header_title_label, QLabel#header_album_label {
     color: #EEEEEE;
     font-size: 13px;
     padding: 0;
 }
 
-QLabel#number_label {
+QLabel#header_number_label {
     margin-right: 15px;
 }
 
-QLabel#title_label {
+QLabel#header_title_label {
     margin-right: 320px;
 }
 
-QLabel#album_label {
+QLabel#header_album_label {
     margin-right: 270px;
 }
 

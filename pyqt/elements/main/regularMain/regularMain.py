@@ -1,31 +1,36 @@
 from PyQt6 import QtCore
 from PyQt6.QtWidgets import QWidget, QVBoxLayout
 import config
+from common.utils.files import get_all_audio_files
+from pyqt.elements.main.regularMain.controls.controls import Controls
 from pyqt.elements.main.regularMain.songList.songList import MusicList
+
+LAYOUT_SPACING = 15
 
 
 class RegularMain(QWidget):
-    def __init__(self):
+    def __init__(self, media_player):
         super().__init__()
         self._styles = ""
         with open("./pyqt/elements/main/regularMain/regularMain.css", "r") as file:
             self._styles = file.read()
         self.setFixedWidth(config.WINDOW_WIDTH)
-        self.setFixedHeight(config.WINDOW_HEIGHT-60)
+        self.setFixedHeight(config.WINDOW_HEIGHT - config.MENU_BAR_HEIGHT)
+        self.setContentsMargins(0, 0, 0, 0)
+        self.__media_player = media_player
         self.setObjectName("regular_main")
-        self._layout = None
-        self._controls = None
-        self._music_list = None
-        self._create_UI()
+        self.__create_UI()
 
-    def _create_UI(self):
-        self._layout = QVBoxLayout()
-        self._layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
-        self._layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(self._layout)
-        # self._controls = Controls(self)
-        self._music_list = MusicList(self)
-        # self._layout.addWidget(self._controls)
-        self._layout.addWidget(self._music_list)
+    def __create_UI(self):
+        self.__layout = QVBoxLayout()
+        self.__layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignBottom)
+        self.__layout.setSpacing(LAYOUT_SPACING)
+        self.__layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(self.__layout)
 
+        self.__music_list = MusicList(self.__media_player)
+        self.__layout.addWidget(self.__music_list)
+
+        self.__controls = Controls(self.__media_player)
+        self.__layout.addWidget(self.__controls)
 

@@ -1,6 +1,10 @@
-WINDOW_HEIGHT = 576
-WINDOW_WIDTH = 1024
+WINDOW_HEIGHT = 720
+WINDOW_WIDTH = 1280
+TILE_WIDTH = 768
+SLIDER_BLOCK_WIDTH = 576
+MENU_BAR_HEIGHT = 30
+CONTROL_BLOCK_HEIGHT = 90
+NUMBER_LABEL_WIDTH = 30
 MUSIC_ABSOLUTE_PATH = r'C:\Users\gulev\PycharmProjects\python-music-player\music'
-music_file_formats = ["mp3", "ogg", "flac",  "wav"]
-
+MUSIC_FILE_FORMATS = ["mp3", "ogg", "flac",  "wav"]
 

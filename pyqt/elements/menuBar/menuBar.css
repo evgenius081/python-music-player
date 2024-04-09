@@ -4,13 +4,8 @@ QMenuBar, QMenuBar::item:pressed{
     font-size: 12px;
 }
 
-QMenuBar::item:selected
+QMenuBar::item:selected, QMenu
 {
     background: #222831;
     color: #EEEEEE
-}
-
-QAction {
-    background: #222831;
-    color: #EEEEEE;
 }

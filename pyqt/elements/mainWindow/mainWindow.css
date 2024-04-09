@@ -1,9 +1,7 @@
 QMainWindow {
     background-color: #222831;
-    padding: 0;
 }
 
 QWidget {
-    padding: 0;
     margin: 0;
 }

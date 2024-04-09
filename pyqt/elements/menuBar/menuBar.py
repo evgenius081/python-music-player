@@ -1,68 +1,89 @@
-from PyQt6.QtCore import QCoreApplication, pyqtSignal
+from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QAction, QIcon
+from PyQt6.QtMultimedia import QMediaPlayer
 from PyQt6.QtWidgets import QMenuBar, QMenu, QApplication, QFileDialog
 
 import config
 from common.utils.files import clone_file
 
+VOLUME_CHANGE_VALUE = 0.05
+
 
 class MenuBar(QMenuBar):
     refresh_signal = pyqtSignal()
 
-    def __init__(self, parent, refresh_slot):
-        super().__init__(parent)
+    def __init__(self, refresh_slot, media_player):
+        super().__init__()
         with open("./pyqt/elements/menuBar/menuBar.css", "r") as file:
-            self.styles = file.read()
-        self.setStyleSheet(self.styles)
+            self.__styles = file.read()
+        self.setStyleSheet(self.__styles)
         self.refresh_signal.connect(refresh_slot)
-        self._create_actions()
-        self._create_menu()
+        self.__media_player = media_player
+        self.__media_player.playbackStateChanged.connect(self.__playback_state_changed)
+        self.__create_actions()
+        self.__create_menu()
 
-    def _create_menu(self):
-        file_menu = QMenu("&Plik", self)
-        file_menu.setStyleSheet(self.styles)
-        file_menu.addAction(self.add_file_action)
-        file_menu.addSeparator()
-        file_menu.addAction(self.exit_action)
+    def __create_menu(self):
+        self.__file_menu = QMenu("Plik", self)
+        self.__file_menu.setStyleSheet(self.__styles)
+        self.__file_menu.addAction(self.__add_file_action)
+        self.__file_menu.addSeparator()
+        self.__file_menu.addAction(self.__exit_action)
 
-        playback_menu = QMenu("&Odtwarzanie", self)
-        playback_menu.setStyleSheet(self.styles)
-        playback_menu.addAction(self.play_action)
-        file_menu.addSeparator()
-        playback_menu.addAction(self.prev_action)
-        playback_menu.addAction(self.next_action)
-        file_menu.addSeparator()
-        playback_menu.addAction(self.shuffle_action)
-        playback_menu.addAction(self.repeatList_action)
-        file_menu.addSeparator()
-        playback_menu.addAction(self.quiet_action)
-        playback_menu.addAction(self.loud_action)
+        self.__actions = {
+            "play/pause": [self.__play_action],
+            "prev/next": [self.__prev_action, self.__next_action],
+            "shuffle/cycle": [self.__shuffle_action, self.__cycle_list_action],
+            "quieter/louder": [self.__quiet_action, self.__loud_action]
+        }
 
-        about_menu = QMenu("&Opis", self)
-        about_menu.setStyleSheet(self.styles)
-        self.addMenu(file_menu)
-        self.addMenu(playback_menu)
-        self.addMenu(about_menu)
+        self.__playback_menu = QMenu("Odtwarzanie", self)
+        self.__playback_menu.setStyleSheet(self.__styles)
+        self.__update_playback_menu()
 
-    def _create_actions(self):
-        self.add_file_action = QAction(QIcon("pyqt/assets/add_file.svg"), "&Dodaj pliki")
-        self.add_file_action.triggered.connect(self._add_music_files_action)
-        self.exit_action = QAction(QIcon("pyqt/assets/exit.svg"), "&Wyjdź")
-        self.exit_action.triggered.connect(QApplication.instance().quit)
-        self.stop_action = QAction(QIcon("pyqt/assets/pause.svg"), "&Pauza")
-        self.play_action = QAction("&Odtwarzaj")
-        self.prev_action = QAction("&Poprzednia")
-        self.next_action = QAction("&Następna")
-        self.shuffle_action = QAction("&Przetasowanie")
-        self.stopShuffle_action = QAction("&?")
-        self.repeatList_action = QAction("&Powtarzaj listę")
-        self.repeatSingle_action = QAction("&Powtarzaj jedną")
-        self.stopRepeat_action = QAction("&Nie powtarzaj")
-        self.quiet_action = QAction("&Ciszej")
-        self.loud_action = QAction("&Głośniej")
+        self.__about_menu = QMenu("Opis", self)
+        self.__about_menu.setStyleSheet(self.__styles)
+        self.addMenu(self.__file_menu)
+        self.addMenu(self.__playback_menu)
+        self.addMenu(self.__about_menu)
 
-    def _add_music_files_action(self):
-        file_filter = " ".join(map(lambda s: f"*.{s}", config.music_file_formats))
+    def __create_actions(self):
+        self.__add_file_action = QAction("Dodaj pliki")
+        self.__add_file_action.triggered.connect(self.__add_music_files_action)
+
+        self.__exit_action = QAction("Wyjdź")
+        self.__exit_action.triggered.connect(QApplication.instance().quit)
+
+        self.__stop_action = QAction("Pauza")
+        self.__stop_action.triggered.connect(self.__media_player.pause)
+
+        self.__play_action = QAction("Odtwarzaj")
+        self.__play_action.triggered.connect(self.__media_player.play)
+
+        self.__prev_action = QAction("Poprzednia")
+        self.__prev_action.triggered.connect(self.__media_player.play_prev)
+
+        self.__next_action = QAction("Następna")
+        self.__next_action.triggered.connect(self.__media_player.play_next)
+
+        self.__shuffle_action = QAction("Przetasuj")
+        self.__shuffle_action.triggered.connect(self.__media_player.shuffle)
+
+        self.__unshuffle_action = QAction("Nie tasuj")
+        self.__unshuffle_action.triggered.connect(self.__media_player.unshuffle)
+
+        self.__cycle_list_action = QAction("Powtarzaj listę")
+        self.__repeat_single_action = QAction("Powtarzaj jedną")
+        self.__stop_repeat_action = QAction("Nie powtarzaj")
+
+        self.__quiet_action = QAction("Ciszej")
+        self.__quiet_action.triggered.connect(self.__volume_down)
+
+        self.__loud_action = QAction("Głośniej")
+        self.__loud_action.triggered.connect(self.__volume_up)
+
+    def __add_music_files_action(self):
+        file_filter = " ".join(map(lambda s: f"*.{s}", config.MUSIC_FILE_FORMATS))
         file_dialog = QFileDialog.getOpenFileNames(self, "Select audio files", "", file_filter)
         filenames = file_dialog[0]
         for filename in filenames:
@@ -71,3 +92,37 @@ class MenuBar(QMenuBar):
         if len(filenames) > 0:
             self.refresh_signal.emit()
 
+    def __empty_playback_menu(self):
+        for action in self.__playback_menu.actions():
+            self.__playback_menu.removeAction(action)
+
+    def __update_playback_menu(self):
+        action_lists = self.__actions.values()
+        for action_list in action_lists:
+            self.__playback_menu.addActions(action_list)
+            self.__playback_menu.addSeparator()
+
+    def __volume_down(self):
+        current_volume = self.__media_player.audioOutput().volume()
+        _, diff = divmod(current_volume, VOLUME_CHANGE_VALUE)
+        if diff != 0:
+            self.__media_player.audioOutput().setVolume(current_volume - diff)
+        else:
+            self.__media_player.audioOutput().setVolume(current_volume - VOLUME_CHANGE_VALUE)
+
+    def __volume_up(self):
+        current_volume = self.__media_player.audioOutput().volume()
+        _, diff = divmod(current_volume, VOLUME_CHANGE_VALUE)
+        if diff != 0:
+            self.__media_player.audioOutput().setVolume(current_volume + VOLUME_CHANGE_VALUE - diff)
+        else:
+            self.__media_player.audioOutput().setVolume(current_volume + VOLUME_CHANGE_VALUE)
+
+    def __playback_state_changed(self):
+        self.__empty_playback_menu()
+        if self.__media_player.playbackState() == QMediaPlayer.PlaybackState.PlayingState:
+            self.__actions["play/pause"] = [self.__stop_action]
+        else:
+            self.__playback_menu.removeAction(self.__play_action)
+            self.__actions["play/pause"] = [self.__play_action]
+        self.__update_playback_menu()
