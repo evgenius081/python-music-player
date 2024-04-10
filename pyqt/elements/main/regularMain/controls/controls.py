@@ -41,13 +41,14 @@ class Controls(QWidget):
         self.__media_player = media_player
         self.__current_song = self.__media_player.get_current_song()
         self.__set_source(self.__current_song.full_path)
+        self.__media_player.cycling_changed.connect(self.__cycling_changed)
+        self.__media_player.shuffling_changed.connect(self.__shuffling_changed)
         self.__media_player.positionChanged.connect(self.__position_changed)
         self.__media_player.durationChanged.connect(self.__set_duration)
         self.__media_player.playbackStateChanged.connect(self.__playback_state_changed)
         self.__media_player.sourceChanged.connect(self.__source_changed)
         self.__media_player.audioOutput().volumeChanged.connect(self.__sound_position_changed)
         self.__current_song_second = 0
-        self.__skip_play_next = False
         self.setObjectName("controls")
         self.setStyleSheet(self.__styles)
         self.__current_song_and_sound_width = int((config.WINDOW_WIDTH - config.SLIDER_BLOCK_WIDTH - 10) / 2)
@@ -339,7 +340,6 @@ class Controls(QWidget):
         self.__playback_slider.setValue(0)
         self.__current_song_second = 0
         self.__set_prev_button_active()
-        self.__skip_play_next = True
         self.__media_player.play_next()
         current_song = self.__media_player.get_current_song()
         self.__set_current_song(current_song)
@@ -356,7 +356,6 @@ class Controls(QWidget):
         self.__playback_slider.setValue(0)
         self.__current_song_second = 0
         self.__set_next_button_active()
-        self.__skip_play_next = True
         self.__media_player.play_prev()
         current_song = self.__media_player.get_current_song()
         self.__set_current_song(current_song)
@@ -366,40 +365,27 @@ class Controls(QWidget):
     def __cycle(self):
         if self.__media_player.get_cycled_playlist():
             self.__media_player.uncycle()
-            self.__cycle_button.setIcon(QIcon("pyqt/assets/cycle.svg"))
-            if self.__media_player.is_current_song_first() and not self.__media_player.get_cycled_playlist():
-                self.__set_prev_button_disabled()
-            else:
-                self.__set_prev_button_active()
-
-            if self.__media_player.is_current_song_last() and not self.__media_player.get_cycled_playlist():
-                self.__set_next_button_disabled()
-            else:
-                self.__set_next_button_active()
         elif self.__media_player.get_cycled_one_song():
             self.__media_player.cycle_playlist()
-            self.__cycle_button.setIcon(QIcon("pyqt/assets/cycle_list.svg"))
-            self.__set_prev_button_active()
-            self.__set_next_button_active()
         else:
             self.__media_player.cycle_one_song()
-            self.__cycle_button.setIcon(QIcon("pyqt/assets/cycle_one.svg"))
+
+    def __shuffle_songs(self):
+        if self.__media_player.get_shuffled():
+            self.__media_player.unshuffle()
+        else:
+            self.__media_player.shuffle()
 
     def __playback_state_changed(self):
         if self.__media_player.playbackState() == QMediaPlayer.PlaybackState.PlayingState:
             self.__play_button.setIcon(QIcon("pyqt/assets/pause_active.svg"))
         else:
-            self.__skip_play_next = False
             self.__play_button.setIcon(QIcon("pyqt/assets/play_active.svg"))
 
-    def __shuffle_songs(self):
-        if self.__media_player.get_shuffled():
-            self.__media_player.unshuffle()
-            self.__shuffle_button.setIcon(QIcon("pyqt/assets/shuffle_inactive.svg"))
-        else:
-            self.__media_player.shuffle()
-            self.__shuffle_button.setIcon(QIcon("pyqt/assets/shuffle_active.svg"))
+    def __sound_position_changed(self, position):
+        self.__sound_slider.setValue(int(position * 100))
 
+    def __refresh_prev_next_buttons(self):
         if self.__media_player.is_current_song_first() and not self.__media_player.get_cycled_playlist():
             self.__set_prev_button_disabled()
         else:
@@ -410,6 +396,21 @@ class Controls(QWidget):
         else:
             self.__set_next_button_active()
 
-    def __sound_position_changed(self, position):
-        self.__sound_slider.setValue(int(position * 100))
+    def __cycling_changed(self):
+        if self.__media_player.get_cycled_playlist() and not self.__media_player.get_cycled_one_song():
+            self.__cycle_button.setIcon(QIcon("pyqt/assets/cycle_list.svg"))
+        elif not self.__media_player.get_cycled_playlist() and self.__media_player.get_cycled_one_song():
+            self.__cycle_button.setIcon(QIcon("pyqt/assets/cycle_one.svg"))
+        elif not self.__media_player.get_cycled_playlist() and not self.__media_player.get_cycled_one_song():
+            self.__cycle_button.setIcon(QIcon("pyqt/assets/cycle.svg"))
+
+        self.__refresh_prev_next_buttons()
+
+    def __shuffling_changed(self):
+        if self.__media_player.get_shuffled():
+            self.__shuffle_button.setIcon(QIcon("pyqt/assets/shuffle_active.svg"))
+        else:
+            self.__shuffle_button.setIcon(QIcon("pyqt/assets/shuffle_inactive.svg"))
+
+        self.__refresh_prev_next_buttons()
 

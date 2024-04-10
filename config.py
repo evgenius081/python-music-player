@@ -5,6 +5,6 @@ SLIDER_BLOCK_WIDTH = 576
 MENU_BAR_HEIGHT = 30
 CONTROL_BLOCK_HEIGHT = 90
 NUMBER_LABEL_WIDTH = 30
-MUSIC_ABSOLUTE_PATH = r'C:\Users\gulev\PycharmProjects\python-music-player\music'
+MUSIC_ABSOLUTE_PATH = r'C:\Users\yauheni.hulevich\PycharmProjects\python-music-player\music'
 MUSIC_FILE_FORMATS = ["mp3", "ogg", "flac",  "wav"]
 

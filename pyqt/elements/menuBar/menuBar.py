@@ -19,7 +19,11 @@ class MenuBar(QMenuBar):
         self.setStyleSheet(self.__styles)
         self.refresh_signal.connect(refresh_slot)
         self.__media_player = media_player
+        self.__media_player.cycling_changed.connect(self.__cycling_changed)
+        self.__media_player.shuffling_changed.connect(self.__shuffling_changed)
         self.__media_player.playbackStateChanged.connect(self.__playback_state_changed)
+        self.__media_player.audioOutput().volumeChanged.connect(self.__volume_changed)
+        self.__media_player.sourceChanged.connect(self.__source_changed)
         self.__create_actions()
         self.__create_menu()
 
@@ -33,7 +37,7 @@ class MenuBar(QMenuBar):
         self.__actions = {
             "play/pause": [self.__play_action],
             "prev/next": [self.__prev_action, self.__next_action],
-            "shuffle/cycle": [self.__shuffle_action, self.__cycle_list_action],
+            "shuffle/cycle": [self.__shuffle_action, self.__cycle_playlist_action],
             "quieter/louder": [self.__quiet_action, self.__loud_action]
         }
 
@@ -72,9 +76,14 @@ class MenuBar(QMenuBar):
         self.__unshuffle_action = QAction("Nie tasuj")
         self.__unshuffle_action.triggered.connect(self.__media_player.unshuffle)
 
-        self.__cycle_list_action = QAction("Powtarzaj listę")
-        self.__repeat_single_action = QAction("Powtarzaj jedną")
-        self.__stop_repeat_action = QAction("Nie powtarzaj")
+        self.__cycle_playlist_action = QAction("Powtarzaj listę")
+        self.__cycle_playlist_action.triggered.connect(self.__cycle_playlist)
+
+        self.__cycle_one_song_action = QAction("Powtarzaj jedną")
+        self.__cycle_one_song_action.triggered.connect(self.__cycle_one_song)
+
+        self.__uncycle_action = QAction("Nie powtarzaj")
+        self.__uncycle_action.triggered.connect(self.__uncycle)
 
         self.__quiet_action = QAction("Ciszej")
         self.__quiet_action.triggered.connect(self.__volume_down)
@@ -104,19 +113,19 @@ class MenuBar(QMenuBar):
 
     def __volume_down(self):
         current_volume = self.__media_player.audioOutput().volume()
-        _, diff = divmod(current_volume, VOLUME_CHANGE_VALUE)
+        _, diff = divmod(round(current_volume, 2), VOLUME_CHANGE_VALUE)
         if diff != 0:
-            self.__media_player.audioOutput().setVolume(current_volume - diff)
+            self.__media_player.audioOutput().setVolume(round(current_volume, 2) - diff)
         else:
-            self.__media_player.audioOutput().setVolume(current_volume - VOLUME_CHANGE_VALUE)
+            self.__media_player.audioOutput().setVolume(round(current_volume, 2) - VOLUME_CHANGE_VALUE)
 
     def __volume_up(self):
         current_volume = self.__media_player.audioOutput().volume()
-        _, diff = divmod(current_volume, VOLUME_CHANGE_VALUE)
+        _, diff = divmod(round(current_volume, 2), VOLUME_CHANGE_VALUE)
         if diff != 0:
-            self.__media_player.audioOutput().setVolume(current_volume + VOLUME_CHANGE_VALUE - diff)
+            self.__media_player.audioOutput().setVolume(round(current_volume, 2) + VOLUME_CHANGE_VALUE - diff)
         else:
-            self.__media_player.audioOutput().setVolume(current_volume + VOLUME_CHANGE_VALUE)
+            self.__media_player.audioOutput().setVolume(round(current_volume, 2) + VOLUME_CHANGE_VALUE)
 
     def __playback_state_changed(self):
         self.__empty_playback_menu()
@@ -126,3 +135,73 @@ class MenuBar(QMenuBar):
             self.__playback_menu.removeAction(self.__play_action)
             self.__actions["play/pause"] = [self.__play_action]
         self.__update_playback_menu()
+
+    def __cycle_playlist(self):
+        self.__media_player.cycle_playlist()
+
+    def __uncycle(self):
+        self.__media_player.uncycle()
+
+    def __cycle_one_song(self):
+        self.__media_player.cycle_one_song()
+
+    def __volume_changed(self, position):
+        if position == 0.0:
+            print(position)
+            self.__empty_playback_menu()
+            print(self.__actions["quieter/louder"].index(self.__quiet_action))
+            self.__actions["quieter/louder"].remove(self.__quiet_action)
+            self.__update_playback_menu()
+        elif 0 < position < 1.0:
+
+            self.__empty_playback_menu()
+            if self.__actions["quieter/louder"].count(self.__quiet_action) == 0:
+                self.__actions["quieter/louder"][0] = self.__quiet_action
+
+            if self.__actions["quieter/louder"].count(self.__loud_action) == 0:
+                self.__actions["quieter/louder"].append(self.__loud_action)
+            self.__update_playback_menu()
+        else:
+            self.__empty_playback_menu()
+            self.__actions["quieter/louder"].remove(self.__loud_action)
+            self.__update_playback_menu()
+
+    def __source_changed(self):
+        if self.__media_player.is_current_song_first() and not self.__media_player.get_cycled_playlist():
+            self.__empty_playback_menu()
+            self.__actions["prev/next"].remove(self.__prev_action)
+            self.__update_playback_menu()
+        else:
+            self.__empty_playback_menu()
+            if self.__actions["prev/next"].count(self.__prev_action) == 0:
+                self.__actions["prev/next"][0] = self.__prev_action
+            self.__update_playback_menu()
+
+        if self.__media_player.is_current_song_last() and not self.__media_player.get_cycled_playlist():
+            self.__empty_playback_menu()
+            self.__actions["prev/next"].remove(self.__next_action)
+            self.__update_playback_menu()
+        else:
+            self.__empty_playback_menu()
+            if self.__actions["prev/next"].count(self.__next_action) == 0:
+                self.__actions["prev/next"].append(self.__next_action)
+            self.__update_playback_menu()
+
+    def __cycling_changed(self):
+        self.__empty_playback_menu()
+        if self.__media_player.get_cycled_playlist() and not self.__media_player.get_cycled_one_song():
+            self.__actions["shuffle/cycle"][1] = self.__cycle_one_song_action
+        elif not self.__media_player.get_cycled_playlist() and self.__media_player.get_cycled_one_song():
+            self.__actions["shuffle/cycle"][1] = self.__uncycle_action
+        elif not self.__media_player.get_cycled_playlist() and not self.__media_player.get_cycled_one_song():
+            self.__actions["shuffle/cycle"][1] = self.__cycle_playlist_action
+        self.__update_playback_menu()
+
+    def __shuffling_changed(self):
+        self.__empty_playback_menu()
+        if self.__media_player.get_shuffled():
+            self.__actions["shuffle/cycle"][0] = self.__unshuffle_action
+        else:
+            self.__actions["shuffle/cycle"][0] = self.__shuffle_action
+        self.__update_playback_menu()
+

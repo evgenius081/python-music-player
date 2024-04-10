@@ -1,6 +1,5 @@
 from PyQt6 import QtCore
 from PyQt6.QtCore import pyqtSlot
-from PyQt6.QtMultimedia import QMediaPlayer
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget
 
 from pyqt.elements.main.regularMain.regularMain import RegularMain
