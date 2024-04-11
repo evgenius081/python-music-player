@@ -90,6 +90,7 @@ class Song(QWidget):
         self.__delete_song_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.__delete_song_button.setObjectName("delete_song_button")
         self.__delete_song_button.setStyleSheet(self.__styles)
+        self.__delete_song_button.clicked.connect(self.__remove_song)
         self.__song_layout.addWidget(self.__delete_song_button)
 
     def __create__title_layout(self):
@@ -204,4 +205,7 @@ class Song(QWidget):
 
     def set_song(self, song):
         self.__media_player.replace_song(self.__song, song)
+
+    def __remove_song(self):
+        self.__media_player.delete_song(self.__song)
 

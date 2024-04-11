@@ -21,6 +21,7 @@ class MenuBar(QMenuBar):
         self.__media_player = media_player
         self.__media_player.cycling_changed.connect(self.__cycling_changed)
         self.__media_player.shuffling_changed.connect(self.__shuffling_changed)
+        self.__media_player.song_deleted.connect(self.__song_deleted)
         self.__media_player.playbackStateChanged.connect(self.__playback_state_changed)
         self.__media_player.audioOutput().volumeChanged.connect(self.__volume_changed)
         self.__media_player.sourceChanged.connect(self.__source_changed)
@@ -208,5 +209,8 @@ class MenuBar(QMenuBar):
         else:
             self.__actions["shuffle/cycle"][0] = self.__shuffle_action
         self.__update_playback_menu()
+        self.__update_nex_prev_actions()
+
+    def __song_deleted(self, _):
         self.__update_nex_prev_actions()
 

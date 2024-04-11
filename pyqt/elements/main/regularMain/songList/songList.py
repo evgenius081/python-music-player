@@ -25,6 +25,7 @@ class MusicList(QWidget):
         self.setStyleSheet(self.__styles)
         self.__media_player = media_player
         self.__media_player.sourceChanged.connect(self.__current_song_updated)
+        self.__media_player.song_deleted.connect(self.__song_deleted)
         self.__songs = self.__media_player.get_songs()
         self.__current_song_index = 0
         self.__song_widgets = []
@@ -108,3 +109,9 @@ class MusicList(QWidget):
             self.__song_widgets[self.__current_song_index].unchoose()
             self.__song_widgets[chosen_song_index].choose()
             self.__current_song_index = chosen_song_index
+
+    def __song_deleted(self, song):
+        song_to_remove = \
+            [self.__songs[i] for i in range(len(self.__songs)) if self.__songs[i].file_name == song.file_name][0]
+        self.__songs.remove(song_to_remove)
+        self.__current_song_index

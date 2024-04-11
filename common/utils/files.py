@@ -51,3 +51,7 @@ def is_folder_empty(folder_path):
 def clone_file(file_path, dest_folder):
     shutil.copy2(file_path, dest_folder)
 
+
+def remove_file(file_path):
+    os.remove(file_path)
+

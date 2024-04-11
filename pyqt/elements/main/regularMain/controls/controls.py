@@ -43,6 +43,7 @@ class Controls(QWidget):
         self.__set_source(self.__current_song.full_path)
         self.__media_player.cycling_changed.connect(self.__cycling_changed)
         self.__media_player.shuffling_changed.connect(self.__shuffling_changed)
+        self.__media_player.song_deleted.connect(self.__song_deleted)
         self.__media_player.positionChanged.connect(self.__position_changed)
         self.__media_player.durationChanged.connect(self.__set_duration)
         self.__media_player.playbackStateChanged.connect(self.__playback_state_changed)
@@ -279,7 +280,7 @@ class Controls(QWidget):
         self.__refresh_current_time_label(position)
 
     def __source_changed(self):
-        self.__refresh_prev_next_buttons()
+        self.__update_prev_next_buttons()
         current_song = self.__media_player.get_current_song()
         self.__set_current_song(current_song)
 
@@ -351,7 +352,6 @@ class Controls(QWidget):
         else:
             self.__media_player.cycle_playlist()
 
-
     def __shuffle_songs(self):
         if self.__media_player.get_shuffled():
             self.__media_player.unshuffle()
@@ -367,7 +367,7 @@ class Controls(QWidget):
     def __sound_position_changed(self, position):
         self.__sound_slider.setValue(int(position * 100))
 
-    def __refresh_prev_next_buttons(self):
+    def __update_prev_next_buttons(self):
         if self.__media_player.is_current_song_first() and not self.__media_player.get_cycled_playlist():
             self.__set_prev_button_disabled()
         else:
@@ -386,7 +386,7 @@ class Controls(QWidget):
         elif not self.__media_player.get_cycled_playlist() and not self.__media_player.get_cycled_one_song():
             self.__cycle_button.setIcon(QIcon("common/assets/cycle.svg"))
 
-        self.__refresh_prev_next_buttons()
+        self.__update_prev_next_buttons()
 
     def __shuffling_changed(self):
         if self.__media_player.get_shuffled():
@@ -394,5 +394,8 @@ class Controls(QWidget):
         else:
             self.__shuffle_button.setIcon(QIcon("common/assets/shuffle_inactive.svg"))
 
-        self.__refresh_prev_next_buttons()
+        self.__update_prev_next_buttons()
+        
+    def __song_deleted(self, _):
+        self.__update_prev_next_buttons()
 

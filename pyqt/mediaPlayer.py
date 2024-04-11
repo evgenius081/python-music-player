@@ -4,13 +4,16 @@ from PyQt6.QtCore import QUrl, pyqtSignal
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 
 import config
-from common.utils.files import get_all_audio_files
+from common.classes.fileMetadata import FileMetadata
+from common.utils.files import get_all_audio_files, remove_file
+
 MAX_INT = 2147483647
 
 
 class MediaPlayer(QMediaPlayer):
     cycling_changed = pyqtSignal()
     shuffling_changed = pyqtSignal()
+    song_deleted = pyqtSignal(FileMetadata)
 
     def __init__(self):
         super().__init__()
@@ -114,6 +117,14 @@ class MediaPlayer(QMediaPlayer):
         if self.playbackState() == QMediaPlayer.PlaybackState.PlayingState and self.mediaStatus() == MediaPlayer.MediaStatus.EndOfMedia and not self.__cycled_one_song:
             self.play_next()
         elif self.mediaStatus() == MediaPlayer.MediaStatus.EndOfMedia and self.__cycled_one_song:
-            print("a")
             self.play()
+
+    def delete_song(self, song):
+        song_to_remove = \
+            [self.__songs[i] for i in range(len(self.__songs)) if self.__songs[i].file_name == song.file_name][0]
+        self.__songs.remove(song_to_remove)
+        self.__playlist.remove(song_to_remove)
+        self.__current_song_index = self.__songs.index(self.__current_song)
+        self.song_deleted.emit(song)
+        # remove_file(song.full_path)
 
