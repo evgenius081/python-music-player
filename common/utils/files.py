@@ -48,8 +48,10 @@ def is_folder_empty(folder_path):
     return len(folder) == 0
 
 
-def clone_file(file_path, dest_folder):
-    shutil.copy2(file_path, dest_folder)
+def clone_and_rename_file(file_path, dest_folder, new_name):
+    new_file_path = shutil.copy2(file_path, dest_folder)
+    extension = file_path.split(".")[-1]
+    os.rename(new_file_path, f"{dest_folder}/{new_name}.{extension}")
 
 
 def remove_file(file_path):

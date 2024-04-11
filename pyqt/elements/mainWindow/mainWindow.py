@@ -22,7 +22,7 @@ class MainWindow(QMainWindow):
         self.__main_widget = None
         self.__empty_music_folder_main = None
         self.__regular_main = None
-        self.__media_player = MediaPlayer()
+        self.__media_player = None
         self.__create_UI()
 
     def __create_UI(self):
@@ -39,8 +39,9 @@ class MainWindow(QMainWindow):
         self.__create_main_part()
 
     def __create_menu_bar(self):
-        menu_bar = MenuBar(self.refresh, self.__media_player)
-        self.setMenuBar(menu_bar)
+        self.__menu_bar = MenuBar()
+        self.__menu_bar.songs_added.connect(self.__songs_added)
+        self.setMenuBar(self.__menu_bar)
 
     def __create_main_part(self):
         if is_folder_empty(config.MUSIC_FOLDER_PATH):
@@ -49,30 +50,25 @@ class MainWindow(QMainWindow):
             self.__create_regular_main()
 
     def __create_empty_main(self):
-        self.__empty_music_folder_main = EmptyMusicFolderMain(self.refresh)
+        self.__empty_music_folder_main = EmptyMusicFolderMain()
+        self.__empty_music_folder_main.songs_added.connect(self.__songs_added)
         self.__layout.addWidget(self.__empty_music_folder_main)
-        self._main_widget = self.__empty_music_folder_main
+        self.__main_widget = self.__empty_music_folder_main
         self.adjustSize()
 
     def __create_regular_main(self):
+        self.__media_player = MediaPlayer()
+        self.__menu_bar.set_media_player(self.__media_player)
         self.__regular_main = RegularMain(self.__media_player)
         self.__layout.addWidget(self.__regular_main)
         self.__main_widget = self.__regular_main
         self.adjustSize()
 
-    @pyqtSlot()
-    def refresh(self):
+    def __songs_added(self):
         if not is_folder_empty(config.MUSIC_FOLDER_PATH) and self.__main_widget == self.__empty_music_folder_main:
-            self.__regular_main = RegularMain(self.__media_player)
             self.__layout.removeWidget(self.__main_widget)
-            self.__layout.addWidget(self.__regular_main)
-            self.__main_widget = self.__regular_main
+            self.__create_regular_main()
             self.__empty_music_folder_main = None
-        elif is_folder_empty(config.MUSIC_FOLDER_PATH) and self.__main_widget == self.__regular_main:
-            self.__empty_music_folder_main = EmptyMusicFolderMain(self.refresh)
-            self.__layout.removeWidget(self.__main_widget)
-            self.__layout.addWidget(self.__empty_music_folder_main)
-            self.__main_widget = self.__empty_music_folder_main
-            self.__regular_main = None
-
+        else:
+            self.__media_player.add_new_songs()
 

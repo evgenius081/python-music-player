@@ -4,27 +4,20 @@ from PyQt6.QtMultimedia import QMediaPlayer
 from PyQt6.QtWidgets import QMenuBar, QMenu, QApplication, QFileDialog
 
 import config
-from common.utils.files import clone_file
+from common.utils.files import clone_and_rename_file
 
 VOLUME_CHANGE_VALUE = 0.05
 
 
 class MenuBar(QMenuBar):
-    refresh_signal = pyqtSignal()
+    songs_added = pyqtSignal()
 
-    def __init__(self, refresh_slot, media_player):
+    def __init__(self):
         super().__init__()
         with open("./pyqt/elements/menuBar/menuBar.css", "r") as file:
             self.__styles = file.read()
         self.setStyleSheet(self.__styles)
-        self.refresh_signal.connect(refresh_slot)
-        self.__media_player = media_player
-        self.__media_player.cycling_changed.connect(self.__cycling_changed)
-        self.__media_player.shuffling_changed.connect(self.__shuffling_changed)
-        self.__media_player.song_deleted.connect(self.__song_deleted)
-        self.__media_player.playbackStateChanged.connect(self.__playback_state_changed)
-        self.__media_player.audioOutput().volumeChanged.connect(self.__volume_changed)
-        self.__media_player.sourceChanged.connect(self.__source_changed)
+        self.__media_player = None
         self.__create_actions()
         self.__create_menu()
 
@@ -44,10 +37,12 @@ class MenuBar(QMenuBar):
 
         self.__playback_menu = QMenu("Odtwarzanie", self)
         self.__playback_menu.setStyleSheet(self.__styles)
+        self.__playback_menu.setDisabled(True)
         self.__update_playback_menu()
 
         self.__about_menu = QMenu("Opis", self)
         self.__about_menu.setStyleSheet(self.__styles)
+
         self.addMenu(self.__file_menu)
         self.addMenu(self.__playback_menu)
         self.addMenu(self.__about_menu)
@@ -60,47 +55,40 @@ class MenuBar(QMenuBar):
         self.__exit_action.triggered.connect(QApplication.instance().quit)
 
         self.__stop_action = QAction("Pauza")
-        self.__stop_action.triggered.connect(self.__media_player.pause)
 
         self.__play_action = QAction("Odtwarzaj")
-        self.__play_action.triggered.connect(self.__media_player.play)
 
         self.__prev_action = QAction("Poprzednia")
-        self.__prev_action.triggered.connect(self.__media_player.play_prev)
 
         self.__next_action = QAction("Następna")
-        self.__next_action.triggered.connect(self.__media_player.play_next)
 
         self.__shuffle_action = QAction("Przetasuj")
-        self.__shuffle_action.triggered.connect(self.__media_player.shuffle)
 
         self.__unshuffle_action = QAction("Nie tasuj")
-        self.__unshuffle_action.triggered.connect(self.__media_player.unshuffle)
 
         self.__cycle_playlist_action = QAction("Powtarzaj listę")
-        self.__cycle_playlist_action.triggered.connect(self.__cycle_playlist)
 
         self.__cycle_one_song_action = QAction("Powtarzaj jedną")
-        self.__cycle_one_song_action.triggered.connect(self.__cycle_one_song)
 
         self.__uncycle_action = QAction("Nie powtarzaj")
-        self.__uncycle_action.triggered.connect(self.__uncycle)
 
         self.__quiet_action = QAction("Ciszej")
-        self.__quiet_action.triggered.connect(self.__volume_down)
 
         self.__loud_action = QAction("Głośniej")
-        self.__loud_action.triggered.connect(self.__volume_up)
 
     def __add_music_files_action(self):
         file_filter = " ".join(map(lambda s: f"*.{s}", config.MUSIC_FILE_FORMATS))
         file_dialog = QFileDialog.getOpenFileNames(self, "Select audio files", "", file_filter)
         filenames = file_dialog[0]
-        for filename in filenames:
-            clone_file(filename, config.MUSIC_FOLDER_PATH)\
+        if self.__media_player is None:
+            last_song_number = 0
+        else:
+            last_song_number = int(self.__media_player.get_songs()[-1].file_name.split(".")[0])
+        for index, filename in enumerate(filenames):
+            clone_and_rename_file(filename, config.MUSIC_FOLDER_PATH, last_song_number + index + 1)
 
         if len(filenames) > 0:
-            self.refresh_signal.emit()
+            self.songs_added.emit()
 
     def __empty_playback_menu(self):
         for action in self.__playback_menu.actions():
@@ -176,8 +164,10 @@ class MenuBar(QMenuBar):
             self.__update_playback_menu()
         else:
             self.__empty_playback_menu()
-            if self.__actions["prev/next"].count(self.__prev_action) == 0:
+            if self.__actions["prev/next"].count(self.__prev_action) == 0 and len(self.__actions["prev/next"]) > 0:
                 self.__actions["prev/next"][0] = self.__prev_action
+            elif self.__actions["prev/next"].count(self.__prev_action) == 0:
+                self.__actions["prev/next"].append(self.__prev_action)
             self.__update_playback_menu()
 
         if self.__media_player.is_current_song_last() and not self.__media_player.get_cycled_playlist():
@@ -213,4 +203,32 @@ class MenuBar(QMenuBar):
 
     def __song_deleted(self, _):
         self.__update_nex_prev_actions()
+
+    def __songs_added(self, _):
+        self.__update_nex_prev_actions()
+
+    def set_media_player(self, media_player):
+        self.__media_player = media_player
+
+        self.__media_player.cycling_changed.connect(self.__cycling_changed)
+        self.__media_player.shuffling_changed.connect(self.__shuffling_changed)
+        self.__media_player.song_deleted.connect(self.__song_deleted)
+        self.__media_player.playbackStateChanged.connect(self.__playback_state_changed)
+        self.__media_player.audioOutput().volumeChanged.connect(self.__volume_changed)
+        self.__media_player.sourceChanged.connect(self.__source_changed)
+        self.__media_player.songs_added.connect(self.__songs_added)
+
+        self.__stop_action.triggered.connect(self.__media_player.pause)
+        self.__play_action.triggered.connect(self.__media_player.play)
+        self.__prev_action.triggered.connect(self.__media_player.play_prev)
+        self.__next_action.triggered.connect(self.__media_player.play_next)
+        self.__shuffle_action.triggered.connect(self.__media_player.shuffle)
+        self.__unshuffle_action.triggered.connect(self.__media_player.unshuffle)
+        self.__cycle_playlist_action.triggered.connect(self.__cycle_playlist)
+        self.__cycle_one_song_action.triggered.connect(self.__cycle_one_song)
+        self.__uncycle_action.triggered.connect(self.__uncycle)
+        self.__quiet_action.triggered.connect(self.__volume_down)
+        self.__loud_action.triggered.connect(self.__volume_up)
+
+        self.__playback_menu.setDisabled(False)
 

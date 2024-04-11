@@ -39,7 +39,7 @@ class Song(QWidget):
         self.__layout.setSpacing(LAYOUT_SPACING)
         self.setLayout(self.__layout)
 
-        self.__number_label = QLabel(f"{self.__song_number + 1}")
+        self.__number_label = QLabel(str(self.__song_number))
         self.__number_label.setObjectName("song_number_label")
         self.__number_label.setStyleSheet(self.__styles)
         self.__number_label.setContentsMargins(0, 0, 0, 0)
@@ -203,9 +203,10 @@ class Song(QWidget):
         self.__delete_song_button.setVisible(True)
         self.__chosen = False
 
-    def set_song(self, song):
-        self.__media_player.replace_song(self.__song, song)
-
     def __remove_song(self):
         self.__media_player.delete_song(self.__song)
+
+    def set_song_number(self, number):
+        self.__song_number = number
+        self.__number_label.setText(str(number))
 

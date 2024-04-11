@@ -3,7 +3,7 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QCursor
 from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QFileDialog
 
-from common.utils.files import clone_file
+from common.utils.files import clone_and_rename_file
 import config
 
 EMPTY_FOLDER_LABEL_HEIGHT = 80
@@ -12,9 +12,9 @@ ADD_MUSIC_BUTTON_HEIGHT = 33
 
 
 class EmptyMusicFolderMain(QWidget):
-    refresh_signal = pyqtSignal()
+    songs_added = pyqtSignal()
 
-    def __init__(self, refresh_slot):
+    def __init__(self):
         super().__init__()
         self.styles = None
         with open("./pyqt/elements/main/emptyMusicFolderMain/emptyMusicFolderMain.css", "r") as file:
@@ -22,7 +22,6 @@ class EmptyMusicFolderMain(QWidget):
         self.setFixedWidth(config.WINDOW_WIDTH)
         self.setFixedHeight(config.WINDOW_HEIGHT-config.MENU_BAR_HEIGHT)
         self.setObjectName("empty_music_folder_main")
-        self.refresh_signal.connect(refresh_slot)
         self.layout = None
         self.empty_folder_label = None
         self.add_music_button = None
@@ -57,8 +56,8 @@ class EmptyMusicFolderMain(QWidget):
         file_filter = " ".join(map(lambda s: f"*.{s}", config.MUSIC_FILE_FORMATS))
         file_dialog = QFileDialog.getOpenFileNames(self, "Select audio files", "", file_filter)
         filenames = file_dialog[0]
-        for filename in filenames:
-            clone_file(filename, config.MUSIC_FOLDER_PATH)\
+        for index, filename in enumerate(filenames):
+            clone_and_rename_file(filename, config.MUSIC_FOLDER_PATH, index + 1)
 
         if len(filenames) > 0:
-            self.refresh_signal.emit()
+            self.songs_added.emit()

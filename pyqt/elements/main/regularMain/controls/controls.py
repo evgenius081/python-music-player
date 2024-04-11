@@ -49,6 +49,7 @@ class Controls(QWidget):
         self.__media_player.playbackStateChanged.connect(self.__playback_state_changed)
         self.__media_player.sourceChanged.connect(self.__source_changed)
         self.__media_player.audioOutput().volumeChanged.connect(self.__sound_position_changed)
+        self.__media_player.songs_added.connect(self.__songs_added)
         self.__current_song_second = 0
         self.setObjectName("controls")
         self.setStyleSheet(self.__styles)
@@ -178,7 +179,7 @@ class Controls(QWidget):
         self.__play_button.clicked.connect(self.__play_song)
         self.__control_buttons_layout.addWidget(self.__play_button)
 
-        self.__play_next_button = QPushButton(QIcon("common/assets/play_next_active.svg"), "")
+        self.__play_next_button = QPushButton("")
         self.__play_next_button.setObjectName("play_next_button")
         self.__play_next_button.setStyleSheet(self.__styles)
         self.__play_next_button.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -193,6 +194,8 @@ class Controls(QWidget):
         self.__cycle_button.setFixedSize(CONTROL_BUTTON_SIZE, CONTROL_BUTTON_SIZE)
         self.__cycle_button.clicked.connect(self.__cycle)
         self.__control_buttons_layout.addWidget(self.__cycle_button)
+
+        self.__update_prev_next_buttons()
 
     def __create_slider(self):
         self.__control_slider_widget = QWidget()
@@ -290,7 +293,7 @@ class Controls(QWidget):
 
     def __refresh_current_time_label(self, position):
         current_second, _ = divmod(position, 1000)
-        if self.__current_song_second < current_second or self.__current_song_second > current_second:
+        if self.__current_song_second != current_second:
             self.__current_time_label.setText(str(number_to_mins_and_secs(current_second)))
             self.__current_song_second = current_second
 
@@ -326,7 +329,6 @@ class Controls(QWidget):
         self.__media_player.set_volume(volume)
 
     def __play_next(self):
-        self.__current_song_second = 0
         self.__set_prev_button_active()
         self.__media_player.play_next()
         current_song = self.__media_player.get_current_song()
@@ -336,7 +338,6 @@ class Controls(QWidget):
             self.__set_next_button_disabled()
 
     def __play_prev(self):
-        self.__current_song_second = 0
         self.__set_next_button_active()
         self.__media_player.play_prev()
         current_song = self.__media_player.get_current_song()
@@ -397,5 +398,8 @@ class Controls(QWidget):
         self.__update_prev_next_buttons()
         
     def __song_deleted(self, _):
+        self.__update_prev_next_buttons()
+
+    def __songs_added(self, _):
         self.__update_prev_next_buttons()
 

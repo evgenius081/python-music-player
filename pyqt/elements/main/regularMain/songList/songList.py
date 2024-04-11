@@ -26,7 +26,8 @@ class MusicList(QWidget):
         self.__media_player = media_player
         self.__media_player.sourceChanged.connect(self.__current_song_updated)
         self.__media_player.song_deleted.connect(self.__song_deleted)
-        self.__songs = self.__media_player.get_songs()
+        self.__media_player.songs_added.connect(self.__songs_added)
+        self.__songs = self.__media_player.get_songs()[:]
         self.__current_song_index = 0
         self.__song_widgets = []
         self.__create_UI()
@@ -80,6 +81,7 @@ class MusicList(QWidget):
         self.__scroll_area.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.__scroll_area.setContentsMargins(0, 0, 0, 0)
         self.__scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.__scroll_area.setWidgetResizable(True)
         self.__scroll_area.setVerticalScrollBar(self.__scroll_bar)
 
         self.__list_widget = QWidget()
@@ -93,7 +95,7 @@ class MusicList(QWidget):
         self.__list_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         for index, song in enumerate(self.__songs):
-            song_widget = Song(song, index, self.__media_player)
+            song_widget = Song(song, index + 1, self.__media_player)
             if index == 0:
                 song_widget.choose()
             self.__song_widgets.append(song_widget)
@@ -113,5 +115,20 @@ class MusicList(QWidget):
     def __song_deleted(self, song):
         song_to_remove = \
             [self.__songs[i] for i in range(len(self.__songs)) if self.__songs[i].file_name == song.file_name][0]
+        song_to_remove_index = self.__songs.index(song_to_remove)
         self.__songs.remove(song_to_remove)
-        self.__current_song_index
+        song_widget_to_remove = self.__song_widgets[song_to_remove_index]
+        self.__list_layout.removeWidget(song_widget_to_remove)
+        song_widget_to_remove.setParent(None)
+        self.__song_widgets.remove(song_widget_to_remove)
+        self.__current_song_index = self.__media_player.get_current_song()
+        for index, song_widget in enumerate(self.__song_widgets):
+            song_widget.set_song_number(index + 1)
+
+    def __songs_added(self, new_songs):
+        for index, song in enumerate(new_songs):
+            song_widget = Song(song, len(self.__songs) + index + 1, self.__media_player)
+            self.__song_widgets.append(song_widget)
+            self.__list_layout.addWidget(song_widget)
+        self.__songs.extend(new_songs)
+

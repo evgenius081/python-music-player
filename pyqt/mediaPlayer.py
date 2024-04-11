@@ -14,12 +14,14 @@ class MediaPlayer(QMediaPlayer):
     cycling_changed = pyqtSignal()
     shuffling_changed = pyqtSignal()
     song_deleted = pyqtSignal(FileMetadata)
+    songs_added = pyqtSignal(list)
 
     def __init__(self):
         super().__init__()
         self.__audio = QAudioOutput()
         self.setAudioOutput(self.__audio)
         self.__songs = get_all_audio_files(config.MUSIC_FOLDER_PATH)
+        self.__songs.sort(key=lambda song: int(song.file_name.split(".")[0]))
         self.mediaStatusChanged.connect(self.__media_status_changed)
         self.__playlist = self.__songs[:]
         self.__current_song = self.__songs[0]
@@ -99,11 +101,14 @@ class MediaPlayer(QMediaPlayer):
         self.__set_and_play_song(prev_song)
 
     def __set_and_play_song(self, song):
-        self.__current_song = song
-        self.__current_song_index = self.__playlist.index(self.__current_song)
-        self.pause()
-        self.setSource(QUrl.fromLocalFile(self.__current_song.full_path))
-        self.play()
+        if len(self.__songs) == 1:
+            self.setPosition(0)
+        else:
+            self.__current_song = song
+            self.__current_song_index = self.__playlist.index(self.__current_song)
+            self.pause()
+            self.setSource(QUrl.fromLocalFile(self.__current_song.full_path))
+            self.play()
 
     def play_song(self, song):
         if self.__shuffled:
@@ -114,9 +119,11 @@ class MediaPlayer(QMediaPlayer):
         return self.__current_song
 
     def __media_status_changed(self):
-        if self.playbackState() == QMediaPlayer.PlaybackState.PlayingState and self.mediaStatus() == MediaPlayer.MediaStatus.EndOfMedia and not self.__cycled_one_song:
+        if (self.mediaStatus() == MediaPlayer.MediaStatus.EndOfMedia
+                and (self.__cycled_playlist or (not self.__cycled_playlist and not self.is_current_song_last()))):
             self.play_next()
-        elif self.mediaStatus() == MediaPlayer.MediaStatus.EndOfMedia and self.__cycled_one_song:
+        elif (self.mediaStatus() == MediaPlayer.MediaStatus.EndOfMedia
+              and (self.__cycled_one_song or (self.__cycled_playlist and len(self.__songs) == 0))):
             self.play()
 
     def delete_song(self, song):
@@ -126,5 +133,17 @@ class MediaPlayer(QMediaPlayer):
         self.__playlist.remove(song_to_remove)
         self.__current_song_index = self.__songs.index(self.__current_song)
         self.song_deleted.emit(song)
-        # remove_file(song.full_path)
+        remove_file(song.full_path)
 
+    def add_new_songs(self):
+        known_songs_file_names = list(map(lambda song: song.file_name, self.__songs))
+        all_songs = get_all_audio_files(config.MUSIC_FOLDER_PATH)
+        new_songs = list(filter(lambda song: known_songs_file_names.count(song.file_name) == 0, all_songs))
+        new_songs.sort(key=lambda song: int(song.file_name.split(".")[0]))
+        self.__songs.extend(new_songs)
+        if self.__shuffled:
+            self.shuffle()
+        else:
+            self.__playlist.extend(new_songs)
+
+        self.songs_added.emit(new_songs)
