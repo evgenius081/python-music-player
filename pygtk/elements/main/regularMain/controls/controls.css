@@ -1,0 +1,60 @@
+QWidget#controls {
+    background-color: #FFFFFF;
+}
+
+QLabel#current_song_title_label {
+    color: #76ABAE;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+QLabel#current_song_author_label {
+    color: #EEEEEE;
+    font-size: 13px;
+}
+
+QLabel#current_cover_label {
+    border-radius: 5px;
+}
+
+QPushButton#play_button {
+    background: #31363F;
+    border: none;
+    border-radius: 18px;
+}
+
+QPushButton#shuffle_button, QPushButton#play_prev_button, QPushButton#play_next_button, QPushButton#cycle_button {
+    background: none;
+    border: none;
+}
+
+QLabel#current_playback_time_label, QLabel#total_playback_time_label {
+    color: #EEEEEE;
+    font-size: 12px;
+}
+
+QSlider::groove:horizontal, QSlider::add-page:horizontal {
+    border-radius: 2px;
+    background: #31363F;
+    height: 4px;
+}
+
+QSlider::sub-page:horizontal {
+    background: #EEEEEE;
+    height: 4px;
+    border-radius: 2px;
+}
+
+QSlider::handle:horizontal {
+    background-color: #EEEEEE;
+    border-radius: 5px;
+    height: 10px;
+	line-height: 10px;
+    width: 10px;
+    margin: -3px 0;
+    padding: -3px 0;
+}
+
+QSlider::handle:horizontal:hover {
+	border-radius: 5px;
+}

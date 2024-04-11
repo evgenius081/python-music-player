@@ -56,18 +56,21 @@ class MediaPlayer(QMediaPlayer):
         self.__cycled_playlist = False
         self.setLoops(MAX_INT)
         self.cycling_changed.emit()
+        print("one song cycled")
 
     def cycle_playlist(self):
         self.__cycled_playlist = True
         self.__cycled_one_song = False
         self.setLoops(1)
         self.cycling_changed.emit()
+        print("playlist cycled")
 
     def uncycle(self):
         self.__cycled_one_song = False
         self.__cycled_playlist = False
         self.setLoops(1)
         self.cycling_changed.emit()
+        print("cycle ended")
 
     def is_current_song_last(self):
         return self.__current_song_index == len(self.__songs) - 1
