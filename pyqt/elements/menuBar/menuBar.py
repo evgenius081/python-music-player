@@ -1,7 +1,7 @@
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtMultimedia import QMediaPlayer
-from PyQt6.QtWidgets import QMenuBar, QMenu, QApplication, QFileDialog
+from PyQt6.QtWidgets import QMenuBar, QMenu, QApplication, QFileDialog, QMessageBox
 
 import config
 from common.utils.files import clone_and_rename_file
@@ -22,7 +22,7 @@ class MenuBar(QMenuBar):
         self.__create_menu()
 
     def __create_menu(self):
-        self.__file_menu = QMenu("Plik", self)
+        self.__file_menu = QMenu("Plik")
         self.__file_menu.setStyleSheet(self.__styles)
         self.__file_menu.addAction(self.__add_file_action)
         self.__file_menu.addSeparator()
@@ -35,17 +35,17 @@ class MenuBar(QMenuBar):
             "quieter/louder": [self.__quiet_action, self.__loud_action]
         }
 
-        self.__playback_menu = QMenu("Odtwarzanie", self)
+        self.__playback_menu = QMenu("Odtwarzanie")
         self.__playback_menu.setStyleSheet(self.__styles)
         self.__playback_menu.setDisabled(True)
         self.__update_playback_menu()
 
-        self.__about_menu = QMenu("Opis", self)
-        self.__about_menu.setStyleSheet(self.__styles)
+        self.__about_action = QAction("Opis")
+        self.__about_action.triggered.connect(self.__show_about_window)
 
         self.addMenu(self.__file_menu)
         self.addMenu(self.__playback_menu)
-        self.addMenu(self.__about_menu)
+        self.addAction(self.__about_action)
 
     def __create_actions(self):
         self.__add_file_action = QAction("Dodaj pliki")
@@ -232,3 +232,24 @@ class MenuBar(QMenuBar):
 
         self.__playback_menu.setDisabled(False)
 
+    def __show_about_window(self):
+        msg_box = QMessageBox()
+        msg_box.setStyleSheet(self.__styles)
+        msg_box.setText("Aplikacja przedstawia sobą odtwarzacz muzyki, który pozwala wybierać pliki do odtwarzania, "
+                        "formując playlistę, po czym pozwala:\n"
+                        " - odtwarzac piosenki,\n"
+                        " - spyniać odtwarzanie,\n"
+                        " - przechodzić do następnej/poprzedniej piosenki w playliście,\n"
+                        " - ustawiać/usuwać losową kolejnośc odtwarzania piosenek,\n"
+                        " - ustawiać/usuwać nieskończone powtarzanie jednej piosenki/całej playlisty,\n"
+                        " - ustawiać moment piosenki od którego rozpocząć odtwarzanie,\n"
+                        " - ustawiać poziom głosności,\n"
+                        " - usuwać piosenki.\n"
+                        "Powyższe funkcjonalności są wykonywane za pomocą przycisków na płytkach reprezentujących "
+                        "piosenki, przycisków na dole okna aplikacji oraz menu Odtwarzanie w pasku menu.")
+        msg_box.setWindowTitle("Opis aplikacji")
+        msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
+
+        return_value = msg_box.exec()
+        if return_value == QMessageBox.StandardButton.Ok:
+            msg_box.close()

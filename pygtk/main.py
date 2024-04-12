@@ -1,18 +1,22 @@
-from PyQt6.QtWidgets import QApplication
-import config
 import os
-import sys
-from pyqt.elements.mainWindow.mainWindow import MainWindow
 
-app = QApplication(sys.argv)
-with open("pyqt/main.css", "r") as file:
-    styles = file.read()
+import gi
 
-app.setStyleSheet(styles)
+import config
 
-if not os.path.exists(config.MUSIC_FOLDER_PATH):
-    os.makedirs(config.MUSIC_FOLDER_PATH)
+gi.require_version('Gtk', '4.0')
+from gi.repository import Gtk
 
-window = MainWindow()
-window.show()
-app.exec()
+
+def on_activate(app):
+    win = Gtk.ApplicationWindow(application=app)
+    win.set_title("Odtwarzacz")
+    if not os.path.exists(config.MUSIC_FOLDER_PATH):
+        os.makedirs(config.MUSIC_FOLDER_PATH)
+    win.present()
+
+
+app = Gtk.Application(application_id='com.example.GtkApplication')
+app.connect('activate', on_activate)
+
+app.run(None)
