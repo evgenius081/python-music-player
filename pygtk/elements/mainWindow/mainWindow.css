@@ -1,0 +1,30 @@
+#main_window, #central_box {
+    background-color: #222831;
+}
+
+#menu_bar{
+    background: #31363F;
+    color: #EEEEEE;
+    font-size: 12px;
+}
+
+QMenuBar, QMenu {
+    background: #222831;
+    color: #EEEEEE;
+}
+
+QMessageBox {
+    background: #31363F;
+}
+
+#empty_music_folder_label {
+    color: #EEEEEE;
+    font-size: 32px;
+}
+
+#add_music_button{
+    background: #76ABAE;
+    color: #EEEEEE;
+    font-size: 20px;
+    border-radius: 5px;
+}

@@ -17,8 +17,8 @@ class MainWindow(QMainWindow):
         self.setFixedHeight(config.WINDOW_HEIGHT)
         self.setContentsMargins(0, 0, 0, 0)
         with open("./pyqt/elements/mainWindow/mainWindow.css", "r") as file:
-            self._styles = file.read()
-        self.setStyleSheet(self._styles)
+            self.__styles = file.read()
+        self.setStyleSheet(self.__styles)
         self.__main_widget = None
         self.__empty_music_folder_main = None
         self.__regular_main = None

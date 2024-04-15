@@ -78,7 +78,7 @@ class MenuBar(QMenuBar):
 
     def __add_music_files_action(self):
         file_filter = " ".join(map(lambda s: f"*.{s}", config.MUSIC_FILE_FORMATS))
-        file_dialog = QFileDialog.getOpenFileNames(self, "Select audio files", "", file_filter)
+        file_dialog = QFileDialog.getOpenFileNames(self, "Wybierz pliki dźwiękowe", "", file_filter)
         filenames = file_dialog[0]
         if self.__media_player is None:
             last_song_number = 0
@@ -104,17 +104,17 @@ class MenuBar(QMenuBar):
         current_volume = self.__media_player.audioOutput().volume()
         _, diff = divmod(round(current_volume, 2), VOLUME_CHANGE_VALUE)
         if diff != 0:
-            self.__media_player.audioOutput().setVolume(round(current_volume, 2) - diff)
+            self.__media_player.set_volume(round(current_volume, 2) - diff)
         else:
-            self.__media_player.audioOutput().setVolume(round(current_volume, 2) - VOLUME_CHANGE_VALUE)
+            self.__media_player.set_volume(round(current_volume, 2) - VOLUME_CHANGE_VALUE)
 
     def __volume_up(self):
         current_volume = self.__media_player.audioOutput().volume()
         _, diff = divmod(round(current_volume, 2), VOLUME_CHANGE_VALUE)
         if diff != 0:
-            self.__media_player.audioOutput().setVolume(round(current_volume, 2) + VOLUME_CHANGE_VALUE - diff)
+            self.__media_player.set_volume(round(current_volume, 2) + VOLUME_CHANGE_VALUE - diff)
         else:
-            self.__media_player.audioOutput().setVolume(round(current_volume, 2) + VOLUME_CHANGE_VALUE)
+            self.__media_player.set_volume(round(current_volume, 2) + VOLUME_CHANGE_VALUE)
 
     def __playback_state_changed(self):
         self.__empty_playback_menu()
