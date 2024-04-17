@@ -7,9 +7,11 @@ from common.classes.fileMetadata import FileMetadata
 from common.utils.files import get_all_audio_files, remove_file
 
 gi.require_version('Gtk', '4.0')
-gi.require_version('Gst', '4.0')
+gi.require_version('Gst', '1.0')
 
 from gi.repository import Gtk, Gdk, Gst
+
+Gst.init(None)
 
 MAX_INT = 2147483647
 
@@ -27,9 +29,9 @@ class MediaPlayer():
         self.__songs.sort(key=lambda song: int(song.file_name.split(".")[0]))
         self.__bus = self.__play_bin.get_bus()
         self.__bus.add_signal_watch()
-        self.__bus.connect("message::eos", self.__on_eos)
+        # self.__bus.connect("message::eos", self.__on_eos)
         self.__bus.connect("message::state-changed", self.__on_state_changed)
-        self.__bus.connect("message::application", self.__on_application_message)
+        # self.__bus.connect("message::application", self.__on_application_message)
         self.__playlist = self.__songs[:]
         self.__current_song = self.__songs[0]
         self.__current_song_index = 0

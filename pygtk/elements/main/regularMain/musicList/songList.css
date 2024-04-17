@@ -1,0 +1,46 @@
+QScrollArea#song_scroll, QWidget#song_list_widget {
+    background-color: #222831;
+    border: none;
+}
+
+QLabel#header_number_label, QLabel#header_title_label, QLabel#header_album_label {
+    color: #EEEEEE;
+    font-size: 13px;
+    padding: 0;
+}
+
+QLabel#header_number_label {
+    margin-right: 15px;
+}
+
+QLabel#header_title_label {
+    margin-right: 320px;
+}
+
+QLabel#header_album_label {
+    margin-right: 270px;
+}
+
+QScrollBar {
+    background-color: transparent;
+    border-radius: 4px;
+    width: 8px;
+}
+
+QScrollBar::handle {
+    background: #31363F;
+}
+
+QScrollBar::handle::pressed {
+    background: #76ABAE;
+}
+
+QScrollBar::add-line {
+    border: none;
+    background: none;
+}
+
+QScrollBar::sub-line {
+    border: none;
+    background: none;
+}

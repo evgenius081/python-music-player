@@ -1,9 +1,8 @@
 from PyQt6 import QtCore
 from PyQt6.QtWidgets import QWidget, QVBoxLayout
 import config
-from common.utils.files import get_all_audio_files
 from pyqt.elements.main.regularMain.controls.controls import Controls
-from pyqt.elements.main.regularMain.songList.songList import MusicList
+from pyqt.elements.main.regularMain.songList.songList import SongList
 
 LAYOUT_SPACING = 15
 
@@ -28,7 +27,7 @@ class RegularMain(QWidget):
         self.__layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.__layout)
 
-        self.__music_list = MusicList(self.__media_player)
+        self.__music_list = SongList(self.__media_player)
         self.__layout.addWidget(self.__music_list)
 
         self.__controls = Controls(self.__media_player)

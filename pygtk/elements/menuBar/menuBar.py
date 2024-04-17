@@ -226,9 +226,9 @@ class AMenuBar(ActionBar):
     #
     # def __songs_added(self, _):
     #     self.__update_nex_prev_actions()
-    #
-    # def set_media_player(self, media_player):
-    #     self.__media_player = media_player
+
+    def set_media_player(self, media_player):
+        self.__media_player = media_player
     #
     #     self.__media_player.cycling_changed.connect(self.__cycling_changed)
     #     self.__media_player.shuffling_changed.connect(self.__shuffling_changed)

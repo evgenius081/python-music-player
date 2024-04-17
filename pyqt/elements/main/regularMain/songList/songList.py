@@ -14,7 +14,7 @@ DURATION_ICON_SIZE = 18
 LIST_LAYOUT_SPACING = 15
 
 
-class MusicList(QWidget):
+class SongList(QWidget):
     def __init__(self, media_player):
         super().__init__()
         self.setFixedHeight(config.WINDOW_HEIGHT - config.MENU_BAR_HEIGHT - config.CONTROL_BLOCK_HEIGHT)
