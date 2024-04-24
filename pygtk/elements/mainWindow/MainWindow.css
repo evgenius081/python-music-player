@@ -20,7 +20,7 @@
     border-radius: 5px;
 }
 
-#song_scroll, t#song_list_widget {
+#song_scroll, #song_list_widget {
     background-color: #222831;
     border: none;
 }
@@ -32,15 +32,15 @@
 }
 
 #header_number_label {
-    margin-right: 15px;
+    margin-right: 20px;
 }
 
 #header_title_label {
-    margin-right: 320px;
+    margin-right: 325px;
 }
 
 #header_album_label {
-    margin-right: 270px;
+    margin-right: 265px;
 }
 
 #song_title_label {
@@ -131,4 +131,9 @@
 #current_playback_time_label, #total_playback_time_label {
     color: #EEEEEE;
     font-size: 12px;
+}
+
+#header_button_file, #header_button_playback, #header_button_about{
+    background-color: #31363F;
+    border: none;
 }

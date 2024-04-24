@@ -35,16 +35,19 @@ class MenuBar(ActionBar):
 
         self._file_menu_button = MenuButton()
         self._file_menu_button.set_label("Plik")
+        self._file_menu_button.set_name("header_button_file")
         self._file_menu_button.set_popover(self._file_popover_menu)
         self.pack_start(self._file_menu_button)
 
         self._playback_menu_button = MenuButton()
         self._playback_menu_button.set_label("Odtwarzanie")
+        self._playback_menu_button.set_name("header_button_playback")
         self._playback_menu_button.set_popover(self._playback_popover_menu)
         self.pack_start(self._playback_menu_button)
 
         self._about_button = Button()
-        self._about_button.set_label("About")
+        self._about_button.set_label("Opis")
+        self._about_button.set_name("header_button_about")
         self._about_button.connect("clicked", self._show_about_window)
         self.pack_start(self._about_button)
 

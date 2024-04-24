@@ -337,7 +337,7 @@ class Controls(QWidget):
         current_song = self._media_player.get_current_song()
         self._set_current_song(current_song)
 
-        if self._media_player.is_current_song_last() and not self._media_player.cycling():
+        if self._media_player.is_current_song_last() and self._media_player.cycling != Cycling.PLAYLIST_CYCLED:
             self._set_next_button_disabled()
 
     def _play_prev(self):
@@ -345,19 +345,19 @@ class Controls(QWidget):
         self._media_player.play_prev()
         current_song = self._media_player.get_current_song()
         self._set_current_song(current_song)
-        if self._media_player.is_current_song_first() and not self._media_player.cycling():
+        if self._media_player.is_current_song_first() and self._media_player.cycling != Cycling.PLAYLIST_CYCLED:
             self._set_prev_button_disabled()
 
     def _cycle(self):
-        if self._media_player.cycling():
+        if self._media_player.cycling == Cycling.PLAYLIST_CYCLED:
             self._media_player.cycle_one_song()
-        elif self._media_player.cycling():
+        elif self._media_player.cycling == Cycling.SONG_CYCLED:
             self._media_player.uncycle()
         else:
             self._media_player.cycle_playlist()
 
     def _shuffle_songs(self):
-        if self._media_player.get_shuffled():
+        if self._media_player.shuffled:
             self._media_player.unshuffle()
         else:
             self._media_player.shuffle()
@@ -383,11 +383,11 @@ class Controls(QWidget):
             self._set_next_button_active()
 
     def _cycling_changed(self):
-        if self._media_player.cycling() and self._media_player.cycling == Cycling.PLAYLIST_CYCLED:
+        if self._media_player.cycling == Cycling.PLAYLIST_CYCLED:
             self._cycle_button.setIcon(QIcon("common/assets/cycle_list.svg"))
-        elif not self._media_player.cycling() and self._media_player.cycling == Cycling.SONG_CYCLED:
+        elif self._media_player.cycling == Cycling.SONG_CYCLED:
             self._cycle_button.setIcon(QIcon("common/assets/cycle_one.svg"))
-        elif not self._media_player.cycling() and self._media_player.cycling == Cycling.NO_CYCLING:
+        elif self._media_player.cycling == Cycling.NO_CYCLING:
             self._cycle_button.setIcon(QIcon("common/assets/cycle.svg"))
 
         self._update_prev_next_buttons()

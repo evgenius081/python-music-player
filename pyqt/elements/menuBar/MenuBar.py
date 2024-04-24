@@ -7,7 +7,7 @@ import config
 from common.classes.Cycling import Cycling
 from common.utils.files import clone_and_rename_file
 
-VOLUME_CHANGE_VALUE = 0.05
+VOLUME_CHANGE_VALUE = 5.0
 
 
 class MenuBar(QMenuBar):
@@ -102,7 +102,7 @@ class MenuBar(QMenuBar):
             self._playback_menu.addSeparator()
 
     def _volume_down(self):
-        current_volume = self._media_player.audioOutput().volume()
+        current_volume = self._media_player.audioOutput().volume() * 100
         _, diff = divmod(round(current_volume, 2), VOLUME_CHANGE_VALUE)
         if diff != 0:
             self._media_player.set_volume(round(current_volume, 2) - diff)
@@ -110,7 +110,7 @@ class MenuBar(QMenuBar):
             self._media_player.set_volume(round(current_volume, 2) - VOLUME_CHANGE_VALUE)
 
     def _volume_up(self):
-        current_volume = self._media_player.audioOutput().volume()
+        current_volume = self._media_player.audioOutput().volume() * 100
         _, diff = divmod(round(current_volume, 2), VOLUME_CHANGE_VALUE)
         if diff != 0:
             self._media_player.set_volume(round(current_volume, 2) + VOLUME_CHANGE_VALUE - diff)

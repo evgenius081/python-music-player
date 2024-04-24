@@ -81,17 +81,17 @@ class MediaPlayer(QMediaPlayer):
         self.audioOutput().setVolume(float(volume/100))
 
     def play_next(self):
-        if self._cycled_playlist and self._current_song_index == len(self._playlist) - 1:
+        if self._cycling == Cycling.PLAYLIST_CYCLED and self._current_song_index == len(self._playlist) - 1:
             next_song = self._playlist[0]
         else:
             next_song = self._playlist[self._current_song_index + 1]
 
-        if self._cycled_one_song:
+        if self.cycling == Cycling.SONG_CYCLED:
             self.uncycle()
         self._set_and_play_song(next_song)
 
     def play_prev(self):
-        if self._cycled_playlist and self._current_song_index == 0:
+        if self._cycling == Cycling.PLAYLIST_CYCLED and self._current_song_index == 0:
             prev_song = self._playlist[len(self._playlist) - 1]
         else:
             prev_song = self._playlist[self._current_song_index - 1]
@@ -117,10 +117,12 @@ class MediaPlayer(QMediaPlayer):
 
     def _media_status_changed(self):
         if (self.mediaStatus() == MediaPlayer.MediaStatus.EndOfMedia
-                and (self._cycled_playlist or (not self._cycled_playlist and not self.is_current_song_last()))):
+                and (self._cycling == Cycling.PLAYLIST_CYCLED or
+                     (self._cycling != Cycling.PLAYLIST_CYCLED and not self.is_current_song_last()))):
             self.play_next()
         elif (self.mediaStatus() == MediaPlayer.MediaStatus.EndOfMedia
-              and (self._cycled_one_song or (self._cycled_playlist and len(self._songs) == 0))):
+              and (self._cycling == Cycling.SONG_CYCLED or
+                   (self._cycling == Cycling.PLAYLIST_CYCLED and len(self._songs) == 0))):
             self.play()
 
     def delete_song(self, song):
