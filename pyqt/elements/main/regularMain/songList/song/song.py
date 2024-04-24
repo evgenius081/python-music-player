@@ -166,7 +166,6 @@ class Song(QWidget):
         if not self.__chosen:
             self.__play_button.setVisible(False)
             self.__cover_label.setVisible(True)
-            super().leaveEvent(event)
 
     def __play_song(self):
         if not self.__chosen:

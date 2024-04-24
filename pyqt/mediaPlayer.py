@@ -50,10 +50,10 @@ class MediaPlayer(QMediaPlayer):
     def get_shuffled(self):
         return self.__shuffled
 
-    def get_cycled_one_song(self):
+    def cycling(self):
         return self.__cycled_one_song
 
-    def get_cycled_playlist(self):
+    def cycling(self):
         return self.__cycled_playlist
 
     def cycle_one_song(self):

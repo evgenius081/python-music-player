@@ -3,85 +3,105 @@ import random
 import gi
 
 import config
-from common.classes.fileMetadata import FileMetadata
+from common.classes.Cycling import Cycling
 from common.utils.files import get_all_audio_files, remove_file
 
 gi.require_version('Gtk', '4.0')
 gi.require_version('Gst', '1.0')
 
-from gi.repository import Gtk, Gdk, Gst
+from gi.repository import Gst, GObject
 
 Gst.init(None)
 
 MAX_INT = 2147483647
 
 
-class MediaPlayer():
-    # cycling_changed = pyqtSignal()
-    # shuffling_changed = pyqtSignal()
-    # song_deleted = pyqtSignal(FileMetadata)
-    # songs_added = pyqtSignal(list)
+class MediaPlayer(GObject.Object):
+    __gsignals__ = {
+        'cycling_changed': (GObject.SignalFlags.DETAILED, GObject.TYPE_NONE, (GObject.TYPE_OBJECT,)),
+        'shuffling_changed': (GObject.SignalFlags.DETAILED, GObject.TYPE_NONE, (GObject.TYPE_BOOLEAN,)),
+        'song_deleted': (GObject.SignalFlags.DETAILED, GObject.TYPE_NONE, (GObject.TYPE_PYOBJECT,)),
+        'songs_added': (GObject.SignalFlags.DETAILED, GObject.TYPE_NONE, (GObject.TYPE_PYOBJECT,)),
+        'source_changed': (GObject.SignalFlags.DETAILED, GObject.TYPE_NONE, (GObject.TYPE_OBJECT,)),
+        'volume_changed': (GObject.SignalFlags.DETAILED, GObject.TYPE_NONE, (GObject.TYPE_FLOAT,)),
+        'playback_state_changed': (GObject.SignalFlags.DETAILED, GObject.TYPE_NONE, (GObject.TYPE_OBJECT,)),
+    }
 
     def __init__(self):
-        super().__init__()
-        self.__play_bin = Gst.ElementFactory.make("playbin", None)
+        super(MediaPlayer, self).__init__()
+        Gst.init_check(None)
+        self.IS_GST010 = Gst.version()[0] == 0
+        self.__play_bin = Gst.ElementFactory.make("playbin", "player")
         self.__songs = get_all_audio_files(config.MUSIC_FOLDER_PATH)
         self.__songs.sort(key=lambda song: int(song.file_name.split(".")[0]))
         self.__bus = self.__play_bin.get_bus()
         self.__bus.add_signal_watch()
-        # self.__bus.connect("message::eos", self.__on_eos)
+        self.__bus.connect("message::eos", self.__on_eos)
         self.__bus.connect("message::state-changed", self.__on_state_changed)
-        # self.__bus.connect("message::application", self.__on_application_message)
+        self.__bus.connect("message::error", self.on_error)
+        self.__play_bin.connect("source-setup", self.__source_changed)
         self.__playlist = self.__songs[:]
         self.__current_song = self.__songs[0]
+        self.__play_bin.set_property("uri", f"file:///{self.__current_song.full_path}".replace("\\", "/"))
         self.__current_song_index = 0
-        self.__cycled_one_song = False
-        self.__cycled_playlist = False
+        self.__cycling = Cycling.NO_CYCLING
         self.__shuffled = False
 
-    def shuffle(self):
+    @property
+    def play_bin(self):
+        return self.__play_bin
+
+    @property
+    def bus(self):
+        return self.__bus
+    
+    @property
+    def cycling(self):
+        return self.__cycling
+    
+    @cycling.setter
+    def cycling(self, value):
+        self.__cycling = value
+
+    @property
+    def shuffled(self):
+        return self.__shuffled
+
+    def shuffle(self, _=None, __=None):
         self.__shuffled = True
         random.shuffle(self.__playlist)
         self.__playlist[self.__playlist.index(self.__current_song)], self.__playlist[0] = (
             self.__playlist[0], self.__playlist[self.__playlist.index(self.__current_song)])
         self.__current_song_index = self.__playlist.index(self.__current_song)
-        # self.shuffling_changed.emit()
+        self.emit("shuffling_changed", True)
 
-    def unshuffle(self):
+    def on_error(self, _, msg):
+        err, dbg = msg.parse_error()
+        print("ERROR:", msg.src.get_name(), ":", err.message)
+        if dbg:
+            print("Debug info:", dbg)
+
+    def unshuffle(self, _=None, __=None):
         self.__playlist = self.__songs[:]
         self.__shuffled = False
         self.__current_song_index = self.__playlist.index(self.__current_song)
-        # self.shuffling_changed.emit()
+        self.emit("shuffling_changed", False)
 
     def get_songs(self):
         return self.__songs
 
-    def get_shuffled(self):
-        return self.__shuffled
+    def cycle_one_song(self, _=None, __=None):
+        self.__cycling = Cycling.SONG_CYCLED
+        self.unshuffle()
+        self.emit("cycling_changed", None)
 
-    def get_cycled_one_song(self):
-        return self.__cycled_one_song
+    def cycle_playlist(self, _=None, __=None):
+        self.__cycling = Cycling.PLAYLIST_CYCLED
+        self.emit("cycling_changed", None)
 
-    def get_cycled_playlist(self):
-        return self.__cycled_playlist
-
-    def cycle_one_song(self):
-        self.__cycled_one_song = True
-        self.__cycled_playlist = False
-        self.__play_bin.set_property("repeat", True)
-        # self.cycling_changed.emit()
-
-    def cycle_playlist(self):
-        self.__cycled_playlist = True
-        self.__cycled_one_song = False
-        self.__play_bin.set_property("repeat", False)
-        # self.cycling_changed.emit()
-
-    def uncycle(self):
-        self.__cycled_one_song = False
-        self.__cycled_playlist = False
-        self.__play_bin.set_property("repeat", False)
-        # self.cycling_changed.emit()
+    def uncycle(self, _=None, __=None):
+        self.__cycling = Cycling.NO_CYCLING
+        self.emit("cycling_changed", None)
 
     def is_current_song_last(self):
         return self.__current_song_index == len(self.__songs) - 1
@@ -90,20 +110,25 @@ class MediaPlayer():
         return self.__current_song_index == 0
 
     def set_volume(self, volume):
-        self.__play_bin.set_property("volume", volume)
+        self.__play_bin.set_property("volume", volume/100)
+        self.emit("volume_changed", volume)
 
-    def play_next(self):
-        if self.__cycled_playlist and self.__current_song_index == len(self.__playlist) - 1:
+    def get_volume(self):
+        return self.__play_bin.get_property("volume")
+
+    def play_next(self, _=None, __=None):
+        self.pause()
+        if self.cycling == Cycling.PLAYLIST_CYCLED and self.__current_song_index == len(self.__playlist) - 1:
             next_song = self.__playlist[0]
         else:
             next_song = self.__playlist[self.__current_song_index + 1]
 
-        if self.__cycled_one_song:
+        if self.cycling == Cycling.SONG_CYCLED:
             self.uncycle()
         self.__set_and_play_song(next_song)
 
-    def play_prev(self):
-        if self.__cycled_playlist and self.__current_song_index == 0:
+    def play_prev(self, _=None, __=None):
+        if self.cycling == Cycling.PLAYLIST_CYCLED and self.__current_song_index == 0:
             prev_song = self.__playlist[len(self.__playlist) - 1]
         else:
             prev_song = self.__playlist[self.__current_song_index - 1]
@@ -111,12 +136,19 @@ class MediaPlayer():
 
     def __set_and_play_song(self, song):
         if len(self.__songs) == 1:
-            self.__play_bin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, 0)
+            self.set_position(0)
         else:
             self.__current_song = song
             self.__current_song_index = self.__playlist.index(self.__current_song)
-            self.__play_bin.set_property("uri", f"file://{self.__current_song.full_path}")
-            self.__play_bin.set_state(Gst.State.PLAYING)
+            self.__play_bin.set_state(Gst.State.NULL)
+            self.set_position(0)
+            self.emit("source_changed", None)
+            self.__play_bin.set_property("uri", f"file:///{self.__current_song.full_path}".replace("\\", "/"))
+            self.play()
+
+    def __replay_song(self):
+        self.set_position(0)
+        self.play()
 
     def play_song(self, song):
         if self.__shuffled:
@@ -131,25 +163,15 @@ class MediaPlayer():
         if not message.src == self.__play_bin:
             return
 
-        self.state = new
-        print(f"State changed from {Gst.Element.state_get_name(old)} to {Gst.Element.state_get_name(new)}")
-        # if (self.mediaStatus() == MediaPlayer.MediaStatus.EndOfMedia
-        #         and (self.__cycled_playlist or (not self.__cycled_playlist and not self.is_current_song_last()))):
-        #     self.play_next()
-        # elif (self.mediaStatus() == MediaPlayer.MediaStatus.EndOfMedia
-        #       and (self.__cycled_one_song or (self.__cycled_playlist and len(self.__songs) == 0))):
-        #     self.__play_bin.set_state(Gst.State.PLAYING)
+    def get_current_playback_state(self):
+        return self.__play_bin.get_state(0)[1]
 
-    def on_eos(self, _, __):
-        print("End-Of-Stream reached")
-        self.__play_bin.set_state(Gst.State.READY)
-
-    def on_application_message(self, _, message):
-        print(message.get_structure().get_name())
-        # if message.get_structure().get_name() == "tags-changed":
-            # if the message is the "tags-changed", update the stream info in
-            # the GUI
-            # self.analyze_streams()
+    def __on_eos(self, _, __):
+        if (self.cycling == Cycling.PLAYLIST_CYCLED or 
+                (self.cycling == Cycling.NO_CYCLING and not self.is_current_song_last())):
+            self.play_next()
+        elif self.cycling == Cycling.SONG_CYCLED or (self.cycling == Cycling.PLAYLIST_CYCLED and len(self.__songs) == 0):
+            self.__replay_song()
 
     def delete_song(self, song):
         song_to_remove = \
@@ -157,7 +179,7 @@ class MediaPlayer():
         self.__songs.remove(song_to_remove)
         self.__playlist.remove(song_to_remove)
         self.__current_song_index = self.__songs.index(self.__current_song)
-        # self.song_deleted.emit(song)
+        self.emit("song_deleted", song)
         remove_file(song.full_path)
 
     def add_new_songs(self):
@@ -171,4 +193,21 @@ class MediaPlayer():
         else:
             self.__playlist.extend(new_songs)
 
-        # self.songs_added.emit(new_songs)
+        self.emit("songs_added", new_songs)
+
+    def play(self, _=None, __=None):
+        self.__play_bin.set_state(Gst.State.PLAYING)
+        self.emit("playback_state_changed", None)
+
+    def pause(self, _=None, __=None):
+        self.__play_bin.set_state(Gst.State.PAUSED)
+        self.emit("playback_state_changed", None)
+
+    def __source_changed(self, e, a):
+        print(self.__play_bin.query_duration(Gst.Format.TIME))
+
+    def set_position(self, position):
+        self.__play_bin.seek_simple(Gst.Format.TIME,
+                                    Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT,
+                                    position * Gst.SECOND)
+

@@ -15,6 +15,7 @@ def on_activate(app):
     win = MainWindow(app)
     win.present()
 
+
 app = Gtk.Application(application_id='yahul.GtkApplication')
 app.connect('activate', on_activate)
 

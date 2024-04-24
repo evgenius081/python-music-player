@@ -1,5 +1,6 @@
 import gi
 
+from pygtk.elements.main.regularMain.controls.controls import Controls
 from pygtk.elements.main.regularMain.musicList.songList import SongList
 
 gi.require_version("Gtk", "4.0")
@@ -27,11 +28,13 @@ class RegularMain(Gtk.AspectFrame):
 
     def __create_UI(self):
         self.__box = Gtk.Box.new(orientation=Gtk.Orientation.VERTICAL, spacing=BOX_SPACING)
+        self.__box.set_halign(Gtk.Align.CENTER)
+        self.__box.set_valign(Gtk.Align.START)
         self.set_child(self.__box)
 
         self.__music_list = SongList(self.__media_player)
         self.__box.append(self.__music_list)
 
-        # self.__controls = Controls(self.__media_player)
-        # self.__box.append(self.__controls)
+        self.__controls = Controls(self.__media_player)
+        self.__box.append(self.__controls)
 

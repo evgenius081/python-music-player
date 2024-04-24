@@ -3,7 +3,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
 
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 from gi.repository.Gdk import Cursor
 
 from common.utils.files import clone_and_rename_file
@@ -16,12 +16,12 @@ BOX_SPACING = 20
 
 
 class EmptyMusicFolderMain(Gtk.AspectFrame):
-    # songs_added = pyqtSignal()
+    __gsignals__ = {
+        'songs_added': (GObject.SignalFlags.DETAILED, GObject.TYPE_NONE, (GObject.TYPE_OBJECT,)),
+    }
 
     def __init__(self):
         super().__init__()
-        # self.set(config.WINDOW_WIDTH)
-        # self.setFixedHeight(config.WINDOW_HEIGHT-config.MENU_BAR_HEIGHT)
         self.set_name("empty_music_folder_main")
         self.layout = None
         self.empty_folder_label = None
@@ -53,8 +53,7 @@ class EmptyMusicFolderMain(Gtk.AspectFrame):
     def __create_add_button(self):
         self.__add_music_button = Gtk.Button(label="Dodaj piosenki")
         self.__add_music_button.set_name("add_music_button")
-        self.__add_music_button.set_hexpand(ADD_MUSIC_BUTTON_WIDTH)
-        self.__add_music_button.set_vexpand(ADD_MUSIC_BUTTON_HEIGHT)
+        self.__add_music_button.set_size_request(ADD_MUSIC_BUTTON_WIDTH, ADD_MUSIC_BUTTON_HEIGHT)
         self.__add_music_button.set_cursor(Cursor.new_from_name("pointer"))
         self.__add_music_button.connect("clicked", self._add_music_files_action)
         self.__box.append(self.__add_music_button)
@@ -79,5 +78,5 @@ class EmptyMusicFolderMain(Gtk.AspectFrame):
         if response == Gtk.ResponseType.ACCEPT:
             for index, file in enumerate(dialog.get_files()):
                 clone_and_rename_file(file.get_path(), config.MUSIC_FOLDER_PATH, index + 1)
-            # self.songs_added.emit()
+            self.emit("songs_added", None)
         dialog.destroy()

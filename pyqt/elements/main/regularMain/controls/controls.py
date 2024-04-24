@@ -168,7 +168,6 @@ class Controls(QWidget):
         self.__play_prev_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.__play_prev_button.setFixedSize(CONTROL_BUTTON_SIZE, CONTROL_BUTTON_SIZE)
         self.__play_prev_button.clicked.connect(self.__play_prev)
-        self.__set_prev_button_disabled()
         self.__control_buttons_layout.addWidget(self.__play_prev_button)
 
         self.__play_button = QPushButton(QIcon("common/assets/play_active.svg"), "")
@@ -272,7 +271,10 @@ class Controls(QWidget):
     def __set_current_song(self, song):
         self.__current_song = song
         self.__title_label.setText(song.song_title)
-        self.__author_label.setText(song.song_author)
+        if song.song_author:
+            self.__author_label.setText(song.song_author)
+        else:
+            self.__author_label.setVisible(False)
         self.__set_cover()
 
     def __set_source(self, file_path):
@@ -306,7 +308,7 @@ class Controls(QWidget):
             self.__play_button.setIcon(QIcon("common/assets/pause_active.svg"))
 
     def __set_duration(self, duration):
-        self.__playback_slider.setRange(0, duration)
+        self.__playback_slider.setRange(SOUND_RANGE_MIN, duration)
         self.__total_time_label.setText(self.__current_song.song_duration)
 
     def __set_prev_button_disabled(self):
@@ -334,7 +336,7 @@ class Controls(QWidget):
         current_song = self.__media_player.get_current_song()
         self.__set_current_song(current_song)
 
-        if self.__media_player.is_current_song_last() and not self.__media_player.get_cycled_playlist():
+        if self.__media_player.is_current_song_last() and not self.__media_player.cycling():
             self.__set_next_button_disabled()
 
     def __play_prev(self):
@@ -342,13 +344,13 @@ class Controls(QWidget):
         self.__media_player.play_prev()
         current_song = self.__media_player.get_current_song()
         self.__set_current_song(current_song)
-        if self.__media_player.is_current_song_first() and not self.__media_player.get_cycled_playlist():
+        if self.__media_player.is_current_song_first() and not self.__media_player.cycling():
             self.__set_prev_button_disabled()
 
     def __cycle(self):
-        if self.__media_player.get_cycled_playlist():
+        if self.__media_player.cycling():
             self.__media_player.cycle_one_song()
-        elif self.__media_player.get_cycled_one_song():
+        elif self.__media_player.cycling():
             self.__media_player.uncycle()
         else:
             self.__media_player.cycle_playlist()
@@ -369,22 +371,22 @@ class Controls(QWidget):
         self.__sound_slider.setValue(int(position * 100))
 
     def __update_prev_next_buttons(self):
-        if self.__media_player.is_current_song_first() and not self.__media_player.get_cycled_playlist():
+        if self.__media_player.is_current_song_first() and not self.__media_player.cycling():
             self.__set_prev_button_disabled()
         else:
             self.__set_prev_button_active()
 
-        if self.__media_player.is_current_song_last() and not self.__media_player.get_cycled_playlist():
+        if self.__media_player.is_current_song_last() and not self.__media_player.cycling():
             self.__set_next_button_disabled()
         else:
             self.__set_next_button_active()
 
     def __cycling_changed(self):
-        if self.__media_player.get_cycled_playlist() and not self.__media_player.get_cycled_one_song():
+        if self.__media_player.cycling() and not self.__media_player.cycling():
             self.__cycle_button.setIcon(QIcon("common/assets/cycle_list.svg"))
-        elif not self.__media_player.get_cycled_playlist() and self.__media_player.get_cycled_one_song():
+        elif not self.__media_player.cycling() and self.__media_player.cycling():
             self.__cycle_button.setIcon(QIcon("common/assets/cycle_one.svg"))
-        elif not self.__media_player.get_cycled_playlist() and not self.__media_player.get_cycled_one_song():
+        elif not self.__media_player.cycling() and not self.__media_player.cycling():
             self.__cycle_button.setIcon(QIcon("common/assets/cycle.svg"))
 
         self.__update_prev_next_buttons()

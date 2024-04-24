@@ -157,7 +157,7 @@ class MenuBar(QMenuBar):
         self.__update_nex_prev_actions()
 
     def __update_nex_prev_actions(self):
-        if self.__media_player.is_current_song_first() and not self.__media_player.get_cycled_playlist():
+        if self.__media_player.is_current_song_first() and not self.__media_player.cycling():
             self.__empty_playback_menu()
             if self.__actions["prev/next"].count(self.__prev_action) > 0:
                 self.__actions["prev/next"].remove(self.__prev_action)
@@ -170,7 +170,7 @@ class MenuBar(QMenuBar):
                 self.__actions["prev/next"].append(self.__prev_action)
             self.__update_playback_menu()
 
-        if self.__media_player.is_current_song_last() and not self.__media_player.get_cycled_playlist():
+        if self.__media_player.is_current_song_last() and not self.__media_player.cycling():
             self.__empty_playback_menu()
             if self.__actions["prev/next"].count(self.__next_action) > 0:
                 self.__actions["prev/next"].remove(self.__next_action)
@@ -183,11 +183,11 @@ class MenuBar(QMenuBar):
 
     def __cycling_changed(self):
         self.__empty_playback_menu()
-        if self.__media_player.get_cycled_playlist():
+        if self.__media_player.cycling():
             self.__actions["shuffle/cycle"][1] = self.__cycle_one_song_action
-        elif self.__media_player.get_cycled_one_song():
+        elif self.__media_player.cycling():
             self.__actions["shuffle/cycle"][1] = self.__uncycle_action
-        elif not self.__media_player.get_cycled_playlist() and not self.__media_player.get_cycled_one_song():
+        elif not self.__media_player.cycling() and not self.__media_player.cycling():
             self.__actions["shuffle/cycle"][1] = self.__cycle_playlist_action
         self.__update_playback_menu()
         self.__update_nex_prev_actions()
