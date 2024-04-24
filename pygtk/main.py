@@ -3,7 +3,7 @@ import os
 import gi
 
 import config
-from pygtk.elements.mainWindow.mainWindow import MainWindow
+from pygtk.elements.mainWindow.MainWindow import MainWindow
 
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk
@@ -16,7 +16,7 @@ def on_activate(app):
     win.present()
 
 
-app = Gtk.Application(application_id='yahul.GtkApplication')
-app.connect('activate', on_activate)
+application = Gtk.Application(application_id='yahul.GtkApplication')
+application.connect('activate', on_activate)
 
-app.run(None)
+application.run(None)

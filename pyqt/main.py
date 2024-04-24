@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QApplication
 import config
 import os
 import sys
-from pyqt.elements.mainWindow.mainWindow import MainWindow
+from pyqt.elements.mainWindow.MainWindow import MainWindow
 
 app = QApplication(sys.argv)
 with open("pyqt/main.css", "r") as file:

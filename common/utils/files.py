@@ -4,7 +4,7 @@ import os
 
 import music_tag
 
-from common.classes.fileMetadata import FileMetadata
+from common.classes.FileMetadata import FileMetadata
 import config
 import shutil
 
@@ -29,7 +29,7 @@ def get_file_metadata(file_path):
         song_author=metadata["artist"].value,
         song_album=metadata["album"].value,
         song_duration_in_sec=metadata["#length"].value,
-        song_cover_image_stream=BytesIO(metadata["artwork"].first.data).getvalue()
+        song_cover_bytes=BytesIO(metadata["artwork"].first.data).getvalue()
     )
     return file_metadata
 
@@ -39,7 +39,7 @@ def set_file_metadata(file_metadata):
     metadata["tracktitle"] = file_metadata.song_title
     metadata["artist"] = file_metadata.song_author
     metadata["album"] = file_metadata.song_album
-    metadata["artwork"] = file_metadata.song_cover_image_stream
+    metadata["artwork"] = file_metadata.song_cover_bytes
     metadata.save()
 
 
